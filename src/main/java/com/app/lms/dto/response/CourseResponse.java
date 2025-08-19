@@ -1,5 +1,6 @@
-package com.app.lms.repository.dto.response;
+package com.app.lms.dto.response;
 
+import com.app.lms.enums.CourseStatus;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import java.math.BigDecimal;
@@ -18,6 +19,9 @@ public class CourseResponse {
     String description;
     BigDecimal price = BigDecimal.ZERO;
     Long teacherId;
+    CourseStatus status;
+    Instant startTime;
+    Instant endTime;
     Instant createdAt;
     Instant updatedAt;
 

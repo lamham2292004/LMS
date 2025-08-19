@@ -1,4 +1,4 @@
-package com.app.lms.repository.dto.request;
+package com.app.lms.dto.request;
 
 import com.app.lms.entity.Enrollments;
 import com.app.lms.entity.Lessons;

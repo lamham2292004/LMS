@@ -1,7 +1,12 @@
-package com.app.lms.repository.dto.response;
+package com.app.lms.dto.response;
 
+import com.app.lms.entity.Courses;
+import com.app.lms.enums.LessonStatus;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 
@@ -19,5 +24,8 @@ public class LessonResponse {
     Integer duration;   // thời lượng bài học (phút)
     Instant createdAt;
     Instant updatedAt;
+    Courses course;
+    LessonStatus status;
+
 }
 
