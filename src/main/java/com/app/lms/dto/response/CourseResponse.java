@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Data
@@ -20,11 +21,14 @@ public class CourseResponse {
     BigDecimal price = BigDecimal.ZERO;
     Long teacherId;
     CourseStatus status;
-    Instant startTime;
-    Instant endTime;
-    Instant createdAt;
-    Instant updatedAt;
+    OffsetDateTime startTime;
+    OffsetDateTime endTime;
+    OffsetDateTime createdAt;
+    OffsetDateTime updatedAt;
+    Long categoryId;
+    String categoryName;
+    String img;
 
-    List<LessonResponse> lessons;
+    List<LessonSummaryResponse> lessons;
     List<EnrollmentResponse> enrollments;
 }

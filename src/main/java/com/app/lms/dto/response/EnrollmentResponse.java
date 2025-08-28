@@ -1,12 +1,13 @@
 package com.app.lms.dto.response;
 
-import com.app.lms.entity.Courses;
+import com.app.lms.entity.Course;
 import com.app.lms.enums.EnrollmentStatus;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
 
 @Data
 @Builder
@@ -16,8 +17,7 @@ import java.time.Instant;
 public class EnrollmentResponse {
     Long id;
     Long studentId;
-    Courses course;
     Long courseId;
     EnrollmentStatus status;
-    Instant enrolledAt;
+    OffsetDateTime enrolledAt;
 }
