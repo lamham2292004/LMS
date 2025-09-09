@@ -4,7 +4,6 @@ import com.app.lms.dto.request.ApiResponse;
 import com.app.lms.dto.request.enrollmentRequest.EnrollmentCreateRequest;
 import com.app.lms.dto.request.enrollmentRequest.EnrollmentUpdateRequest;
 import com.app.lms.dto.response.EnrollmentResponse;
-import com.app.lms.entity.Enrollment;
 import com.app.lms.service.EnrollmentService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;

@@ -54,8 +54,10 @@ public class LessonService {
     }
 
     public List<LessonResponse> getAllLessons() {
-        return lessonRepository.findAll().stream()
-                .map(lessonMapper::toLessonResponse).toList();
+        return lessonRepository.findAll()
+                .stream()
+                .map(lessonMapper::toLessonResponse)
+                .toList();
     }
 
 

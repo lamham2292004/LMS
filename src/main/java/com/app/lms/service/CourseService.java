@@ -51,8 +51,10 @@ public class CourseService {
    }
 
    public List<CourseResponse> getAllCourses(){
-      return courseRepository.findAll().stream()
-              .map(courseMapper::toCourseResponse).toList();
+      return courseRepository.findAll()
+              .stream()
+              .map(courseMapper::toCourseResponse)
+              .toList();
    }
 
    public CourseResponse getCourseById(Long courseId){

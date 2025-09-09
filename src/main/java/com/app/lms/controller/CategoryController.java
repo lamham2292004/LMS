@@ -4,7 +4,6 @@ import com.app.lms.dto.request.ApiResponse;
 import com.app.lms.dto.request.categoryRequest.CategoryCreateRequest;
 import com.app.lms.dto.request.categoryRequest.CategoryUpdateRequest;
 import com.app.lms.dto.response.CategoryResponse;
-import com.app.lms.exception.AppException;
 import com.app.lms.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;

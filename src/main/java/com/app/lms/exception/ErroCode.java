@@ -16,6 +16,9 @@ public enum ErroCode {
     CATEGORY_NO_EXISTED(1009, "Danh sách không tồn tại"),
     NAME_CATEGORY_INVALID(1001, "Tên Danh sách đã tồn tại"),
     ENROLLMENT_NO_EXISTED(1009, "Người đăng ký không tồn tại"),
+    QUIZ_NO_EXISTED(1009, "Bài kiểm tra không tồn tại"),
+    QUESTION_NO_EXISTED(1009, "Câu hỏi không tồn tại"),
+    ANSWER_OPTION_NO_EXISTED(1009, "Đáp án không tồn tại"),
     ;
     private int code;
     private String message;
