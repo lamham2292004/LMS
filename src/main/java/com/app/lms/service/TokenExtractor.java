@@ -16,14 +16,26 @@ public class TokenExtractor {
     public String extractTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader(AUTH_HEADER);
 
+        // Check if Authorization header exists
         if (!StringUtils.hasText(bearerToken)) {
-            throw new AppException(ErroCode.UNCATEGORIZED_EXCEPTION);
+            log.debug("No Authorization header found");
+            throw new AppException(ErroCode.TOKEN_MISSING);
         }
 
+        // Check if it starts with "Bearer "
         if (!bearerToken.startsWith(HEADER_PREFIX)) {
-            throw new AppException(ErroCode.UNCATEGORIZED_EXCEPTION);
+            log.debug("Authorization header does not start with Bearer");
+            throw new AppException(ErroCode.TOKEN_INVALID);
         }
 
-        return bearerToken.substring(HEADER_PREFIX.length());
+        String token = bearerToken.substring(HEADER_PREFIX.length());
+
+        // Check if token is not empty after removing "Bearer "
+        if (!StringUtils.hasText(token)) {
+            log.debug("Token is empty after removing Bearer prefix");
+            throw new AppException(ErroCode.TOKEN_MISSING);
+        }
+
+        return token;
     }
 }

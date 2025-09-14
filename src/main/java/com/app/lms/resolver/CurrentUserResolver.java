@@ -24,7 +24,6 @@ public class CurrentUserResolver implements HandlerMethodArgumentResolver {
     private final JwtTokenUtil jwtTokenUtil;
     private final TokenExtractor tokenExtractor;
 
-
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.hasParameterAnnotation(CurrentUserId.class) && parameter.getParameterType().equals(Long.class)
@@ -40,13 +39,19 @@ public class CurrentUserResolver implements HandlerMethodArgumentResolver {
         HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
 
         try {
+            // 1. Extract token from request
             String token = tokenExtractor.extractTokenFromRequest(request);
-            jwtTokenUtil.debugToken(token);
 
+            // 2. Debug token (remove in production)
+            // jwtTokenUtil.debugToken(token);
+
+            // 3. Validate token
             if (!jwtTokenUtil.validateToken(token)) {
-                throw new AppException(ErroCode.UNCATEGORIZED_EXCEPTION);
+                log.warn("Token validation failed");
+                throw new AppException(ErroCode.TOKEN_EXPIRED);
             }
 
+            // 4. Return appropriate data based on annotation
             if (parameter.hasParameterAnnotation(CurrentUserId.class)) {
                 return jwtTokenUtil.getUserIdFromToken(token);
             }
@@ -57,10 +62,12 @@ public class CurrentUserResolver implements HandlerMethodArgumentResolver {
 
             return null;
         } catch (AppException e) {
+            // Re-throw our custom exceptions with specific error codes
+            log.warn("JWT processing failed: {} - {}", e.getErroCode().getCode(), e.getMessage());
             throw e;
         } catch (Exception e) {
             log.error("Unexpected error in CurrentUserResolver: {}", e.getMessage());
-            throw new AppException(ErroCode.UNCATEGORIZED_EXCEPTION);
+            throw new AppException(ErroCode.TOKEN_INVALID);
         }
     }
 }

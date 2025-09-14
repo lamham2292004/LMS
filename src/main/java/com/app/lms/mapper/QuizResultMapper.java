@@ -8,6 +8,7 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "Spring")
 public interface QuizResultMapper {
+    @Mapping(source = "quizResult.id", target = "id")
     @Mapping(source = "quizResult.quizId", target = "quizId")
     @Mapping(source = "quiz.title", target = "quizTitle")
     @Mapping(source = "quizResult.studentId", target = "studentId")
@@ -19,7 +20,7 @@ public interface QuizResultMapper {
             String studentName,
             String feedback
     );
-
+    @Mapping(source = "quizResult.id", target = "id")
     @Mapping(source = "quizResult.quizId", target = "quizId")
     @Mapping(source = "quiz.title", target = "quizTitle")
     @Mapping(target = "studentName", ignore = true)

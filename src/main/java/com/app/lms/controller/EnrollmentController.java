@@ -1,14 +1,21 @@
 package com.app.lms.controller;
 
+import com.app.lms.annotation.CurrentUser;
+import com.app.lms.annotation.CurrentUserId;
+import com.app.lms.dto.auth.UserTokenInfo;
 import com.app.lms.dto.request.ApiResponse;
 import com.app.lms.dto.request.enrollmentRequest.EnrollmentCreateRequest;
 import com.app.lms.dto.request.enrollmentRequest.EnrollmentUpdateRequest;
 import com.app.lms.dto.response.EnrollmentResponse;
+import com.app.lms.enums.UserType;
+import com.app.lms.exception.AppException;
+import com.app.lms.exception.ErroCode;
 import com.app.lms.service.EnrollmentService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,47 +23,133 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/enrollment")
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Slf4j
 public class EnrollmentController {
     final EnrollmentService enrollmentService;
 
-    @PostMapping("/createEnrollment")
-    ApiResponse<EnrollmentResponse> createEnrollment(@RequestBody EnrollmentCreateRequest request) {
-        ApiResponse<EnrollmentResponse> apiResponse = new ApiResponse<>();
+    // Student tự đăng ký khóa học (secure endpoint)
+    @PostMapping("/enroll")
+    public ApiResponse<EnrollmentResponse> enrollCourse(
+            @Valid @RequestBody EnrollmentCreateRequest request,
+            @CurrentUser UserTokenInfo currentUser) {
 
-        apiResponse.setResult(enrollmentService.createEnrollment(request));
+        // Chỉ student mới được đăng ký khóa học
+        if (currentUser.getUserType() != UserType.STUDENT) {
+            throw new AppException(ErroCode.STUDENT_ONLY);
+        }
 
-        return apiResponse;
+        // Set studentId từ token, không trust client
+        request.setStudentId(currentUser.getUserId());
+
+        log.info("Student {} ({}) is enrolling in course {}",
+                currentUser.getFullName(), currentUser.getUsername(), request.getCourseId());
+
+        ApiResponse<EnrollmentResponse> response = new ApiResponse<>();
+        response.setResult(enrollmentService.createEnrollment(request));
+        return response;
     }
 
+    @PostMapping("/createEnrollment")
+    public ApiResponse<EnrollmentResponse> createEnrollment(
+            @RequestBody EnrollmentCreateRequest request,
+            @CurrentUser UserTokenInfo currentUser) {
+
+        // Chỉ admin/lecturer mới dùng được API này
+        if (currentUser.getUserType() != UserType.LECTURER &&
+                (currentUser.getIsAdmin() == null || !currentUser.getIsAdmin())) {
+            throw new AppException(ErroCode.LECTURER_ONLY);
+        }
+
+        ApiResponse<EnrollmentResponse> response = new ApiResponse<>();
+        response.setResult(enrollmentService.createEnrollment(request));
+        return response;
+    }
+
+    // Student xem các khóa học đã đăng ký
+    @GetMapping("/my-enrollments")
+    public ApiResponse<List<EnrollmentResponse>> getMyEnrollments(
+            @CurrentUserId Long currentUserId,
+            @CurrentUser UserTokenInfo currentUser) {
+
+        if (currentUser.getUserType() != UserType.STUDENT) {
+            throw new AppException(ErroCode.STUDENT_ONLY);
+        }
+
+        ApiResponse<List<EnrollmentResponse>> response = new ApiResponse<>();
+        response.setResult(enrollmentService.getEnrollmentsByStudentId(currentUserId));
+        return response;
+    }
+
+    // Admin/Lecturer xem tất cả
     @GetMapping
-    ApiResponse<List<EnrollmentResponse>> getAllEnrollment() {
-        ApiResponse<List<EnrollmentResponse>> apiResponse = new ApiResponse<>();
+    public ApiResponse<List<EnrollmentResponse>> getAllEnrollment(@CurrentUser UserTokenInfo currentUser) {
 
-        apiResponse.setResult(enrollmentService.getAllEnrollments());
+        // Chỉ admin hoặc lecturer mới xem được tất cả
+        if (currentUser.getUserType() != UserType.LECTURER &&
+                (currentUser.getIsAdmin() == null || !currentUser.getIsAdmin())) {
+            throw new AppException(ErroCode.LECTURER_ONLY);
+        }
 
-        return apiResponse;
+        ApiResponse<List<EnrollmentResponse>> response = new ApiResponse<>();
+        response.setResult(enrollmentService.getAllEnrollments());
+        return response;
     }
 
     @GetMapping("/{enrollmentId}")
-    ApiResponse<EnrollmentResponse> getEnrollmentById(@Valid @PathVariable("enrollmentId") Long enrollmentId) {
-        ApiResponse<EnrollmentResponse> apiResponse = new ApiResponse<>();
+    public ApiResponse<EnrollmentResponse> getEnrollmentById(
+            @Valid @PathVariable("enrollmentId") Long enrollmentId,
+            @CurrentUser UserTokenInfo currentUser) {
 
-        apiResponse.setResult(enrollmentService.getEnrollmentById(enrollmentId));
+        EnrollmentResponse enrollment = enrollmentService.getEnrollmentById(enrollmentId);
 
-        return apiResponse;
+        // Student chỉ xem được enrollment của mình
+        if (currentUser.getUserType() == UserType.STUDENT) {
+            if (!enrollment.getStudentId().equals(currentUser.getUserId())) {
+                throw new AppException(ErroCode.ACCESS_DENIED);
+            }
+        }
+
+        ApiResponse<EnrollmentResponse> response = new ApiResponse<>();
+        response.setResult(enrollment);
+        return response;
     }
 
     @PutMapping("/{enrollmentId}")
-    ApiResponse<EnrollmentResponse> updateEnrollmentById(@PathVariable Long enrollmentId,@Valid @RequestBody EnrollmentUpdateRequest request) {
-        ApiResponse<EnrollmentResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(enrollmentService.updateEnrollment(enrollmentId, request));
-        return apiResponse;
+    public ApiResponse<EnrollmentResponse> updateEnrollmentById(
+            @PathVariable Long enrollmentId,
+            @Valid @RequestBody EnrollmentUpdateRequest request,
+            @CurrentUser UserTokenInfo currentUser) {
+
+        EnrollmentResponse existingEnrollment = enrollmentService.getEnrollmentById(enrollmentId);
+
+        // Student chỉ update được enrollment của mình
+        if (currentUser.getUserType() == UserType.STUDENT) {
+            if (!existingEnrollment.getStudentId().equals(currentUser.getUserId())) {
+                throw new AppException(ErroCode.ACCESS_DENIED);
+            }
+        }
+
+        ApiResponse<EnrollmentResponse> response = new ApiResponse<>();
+        response.setResult(enrollmentService.updateEnrollment(enrollmentId, request));
+        return response;
     }
+
     @DeleteMapping("/{enrollmentId}")
-    String deleteEnrollmentById(@PathVariable("enrollmentId") Long enrollmentId) {
+    public ApiResponse<String> deleteEnrollmentById(
+            @PathVariable("enrollmentId") Long enrollmentId,
+            @CurrentUser UserTokenInfo currentUser) {
+
+        // Chỉ admin mới được delete
+        if (currentUser.getIsAdmin() == null || !currentUser.getIsAdmin()) {
+            throw new AppException(ErroCode.ADMIN_ONLY);
+        }
+
         enrollmentService.deleteEnrollment(enrollmentId);
-        return "Enrollment deleted";
+
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setResult("Enrollment deleted successfully");
+        return response;
     }
 
 }

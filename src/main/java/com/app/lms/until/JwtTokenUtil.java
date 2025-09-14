@@ -38,32 +38,31 @@ public class JwtTokenUtil {
                     .getBody();
         } catch (ExpiredJwtException e) {
             log.error("Token đã hết hạn: {}", e.getMessage());
-            throw new AppException(ErroCode.UNCATEGORIZED_EXCEPTION);
+            throw new AppException(ErroCode.TOKEN_EXPIRED);
         } catch (UnsupportedJwtException e) {
             log.error("Token không được hỗ trợ: {}", e.getMessage());
-            throw new AppException(ErroCode.UNCATEGORIZED_EXCEPTION);
+            throw new AppException(ErroCode.TOKEN_INVALID);
         } catch (MalformedJwtException e) {
             log.error("Token không đúng format: {}", e.getMessage());
-            throw new AppException(ErroCode.UNCATEGORIZED_EXCEPTION);
+            throw new AppException(ErroCode.TOKEN_INVALID);
         } catch (io.jsonwebtoken.security.SecurityException e) {
             log.error("Signature không hợp lệ: {}", e.getMessage());
-            throw new AppException(ErroCode.UNCATEGORIZED_EXCEPTION);
+            throw new AppException(ErroCode.TOKEN_INVALID);
         } catch (IllegalArgumentException e) {
             log.error("Token rỗng: {}", e.getMessage());
-            throw new AppException(ErroCode.UNCATEGORIZED_EXCEPTION);
+            throw new AppException(ErroCode.TOKEN_MISSING);
         } catch (Exception e) {
             log.error("Lỗi không xác định khi parse token: {}", e.getMessage());
-            throw new AppException(ErroCode.UNCATEGORIZED_EXCEPTION);
+            throw new AppException(ErroCode.TOKEN_INVALID);
         }
     }
 
-    // Update getUserIdFromToken method
     public Long getUserIdFromToken(String token) {
         try {
             Claims claims = getAllClaimsFromToken(token);
             Object userIdObj = claims.get("userId");
             if (userIdObj == null) {
-                userIdObj = claims.getSubject(); // sub: 1
+                userIdObj = claims.getSubject(); // Fallback to "sub"
             }
 
             if (userIdObj instanceof Number) {
@@ -72,33 +71,41 @@ public class JwtTokenUtil {
                 return Long.parseLong((String) userIdObj);
             }
 
-            throw new AppException(ErroCode.UNCATEGORIZED_EXCEPTION);
+            log.error("Cannot extract user ID from token - no valid userId or sub claim found");
+            throw new AppException(ErroCode.TOKEN_INVALID);
         } catch (AppException e) {
-            throw e;
+            throw e; // Re-throw JWT exceptions
         } catch (Exception e) {
             log.error("Error extracting user ID from token: {}", e.getMessage());
-            throw new AppException(ErroCode.UNCATEGORIZED_EXCEPTION);
+            throw new AppException(ErroCode.TOKEN_INVALID);
         }
     }
 
-
-    // Update getUserTypeFromToken method
     public UserType getUserTypeFromToken(String token) {
         try {
             Claims claims = getAllClaimsFromToken(token);
             String userType = (String) claims.get("userType");
             if (userType == null) {
-                userType = (String) claims.get("user_type");
+                userType = (String) claims.get("user_type"); // Identity Service uses "user_type"
             }
             if (userType == null) {
-                throw new AppException(ErroCode.UNCATEGORIZED_EXCEPTION);
+                userType = (String) claims.get("role"); // Fallback
             }
+
+            if (userType == null) {
+                log.error("No user type found in token");
+                throw new AppException(ErroCode.TOKEN_INVALID);
+            }
+
             return UserType.valueOf(userType.toUpperCase());
         } catch (AppException e) {
             throw e;
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid user type in token: {}", e.getMessage());
+            throw new AppException(ErroCode.TOKEN_INVALID);
         } catch (Exception e) {
             log.error("Error extracting user type from token: {}", e.getMessage());
-            return UserType.STUDENT;
+            throw new AppException(ErroCode.TOKEN_INVALID);
         }
     }
 
@@ -107,6 +114,7 @@ public class JwtTokenUtil {
             final Date expiration = getExpirationDateFromToken(token);
             return expiration.before(new Date());
         } catch (Exception e) {
+            log.warn("Error checking token expiration: {}", e.getMessage());
             return true;
         }
     }
@@ -119,12 +127,15 @@ public class JwtTokenUtil {
         try {
             getAllClaimsFromToken(token);
             return !isTokenExpired(token);
+        } catch (AppException e) {
+            log.warn("Token validation failed: {}", e.getMessage());
+            return false;
         } catch (Exception e) {
+            log.error("Unexpected error during token validation: {}", e.getMessage());
             return false;
         }
     }
 
-    // Update getUserInfoFromToken method
     public UserTokenInfo getUserInfoFromToken(String token) {
         try {
             Claims claims = getAllClaimsFromToken(token);
@@ -134,7 +145,7 @@ public class JwtTokenUtil {
                     .accountId(extractLongFromClaims(claims, "accountId"))
                     .username((String) claims.get("username"))
                     .email((String) claims.get("email"))
-                    .fullName((String) claims.get("full_name"))
+                    .fullName((String) claims.get("full_name")) // Identity Service uses "full_name"
                     .userType(getUserTypeFromToken(token))
                     .studentCode((String) claims.get("studentCode"))
                     .lecturerCode((String) claims.get("lecturerCode"))
@@ -146,7 +157,7 @@ public class JwtTokenUtil {
             throw e;
         } catch (Exception e) {
             log.error("Error extracting user info from token: {}", e.getMessage());
-            throw new AppException(ErroCode.UNCATEGORIZED_EXCEPTION);
+            throw new AppException(ErroCode.TOKEN_INVALID);
         }
     }
 
@@ -178,7 +189,7 @@ public class JwtTokenUtil {
         }
     }
 
-    // Thêm vào JwtTokenUtil.java
+    // Debug method - có thể remove trong production
     public void debugToken(String token) {
         try {
             Claims claims = getAllClaimsFromToken(token);

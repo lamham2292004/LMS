@@ -26,4 +26,11 @@ public class JwtController {
         response.setResult(userId);
         return response;
     }
+
+    @GetMapping("/simple")
+    public ApiResponse<String> simpleTest() {
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setResult("Server hoạt động OK - không cần token!");
+        return response;
+    }
 }

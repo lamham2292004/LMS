@@ -29,7 +29,7 @@ public class QuizResultController {
 
     @PostMapping("/submit")
     public ApiResponse<QuizResultResponse> submitQuiz(
-            @Valid @RequestBody SubmitQuizRequest request,
+            @RequestBody SubmitQuizRequest request,
             @CurrentUser UserTokenInfo currentUser) {
 
         // Validate chỉ student mới được làm quiz
@@ -37,14 +37,13 @@ public class QuizResultController {
             throw new AppException(ErroCode.STUDENT_ONLY);
         }
 
-        // Set student ID từ token, không trust client
         request.setStudentId(currentUser.getUserId());
 
-        log.info("Student {} ({}) is submitting quiz {}",
-                currentUser.getFullName(), currentUser.getUsername(), request.getQuizId());
+        // Pass studentName từ JWT token
+        QuizResultResponse result = quizResultService.submitQuiz(request, currentUser.getFullName());
 
         ApiResponse<QuizResultResponse> response = new ApiResponse<>();
-        response.setResult(quizResultService.submitQuiz(request));
+        response.setResult(result);
         return response;
     }
 
@@ -59,7 +58,7 @@ public class QuizResultController {
         }
 
         ApiResponse<List<QuizResultResponse>> response = new ApiResponse<>();
-        response.setResult(quizResultService.getQuizResultsByStudentAndQuiz(quizId, currentUserId));
+        response.setResult(quizResultService.getQuizResultsByStudentAndQuiz(quizId, currentUserId, currentUser.getFullName()));
         return response;
     }
 
@@ -107,7 +106,7 @@ public class QuizResultController {
         response.setResult(quizResultService.getAllQuizResults(quizId));
         return response;
     }
-
+    //check student hiện tại có thể làm quiz không
     @GetMapping("/can-take/{quizId}")
     public ApiResponse<Boolean> canTakeQuiz(
             @PathVariable Long quizId,
