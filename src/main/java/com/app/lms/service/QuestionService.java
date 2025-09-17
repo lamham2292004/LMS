@@ -58,4 +58,11 @@ public class QuestionService {
     public void deleteQuestion(Long questionId) {
         questionRepository.deleteById(questionId);
     }
+
+    public List<QuestionResponse> getQuestionsByQuizId(Long quizId) {
+        return questionRepository.findAll().stream()
+                .filter(question -> question.getQuizId().equals(quizId))
+                .map(questionMapper::toQuestionResponse)
+                .toList();
+    }
 }

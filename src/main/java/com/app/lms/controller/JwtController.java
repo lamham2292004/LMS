@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/test")
 @RequiredArgsConstructor
 public class JwtController {
+    // check thông tin token
     @GetMapping("/me")
     public ApiResponse<UserTokenInfo> getCurrentUser(@CurrentUser UserTokenInfo user) {
         ApiResponse<UserTokenInfo> response = new ApiResponse<>();

@@ -61,4 +61,10 @@ public class QuizService {
         quizRepository.deleteById(quizId);
     }
 
+    public List<QuizResponse> getQuizzesByLessonId(Long lessonId) {
+        return quizRepository.findAll().stream()
+                .filter(quiz -> quiz.getLessonId().equals(lessonId))
+                .map(quizMapper::toQuizResponse)
+                .toList();
+    }
 }

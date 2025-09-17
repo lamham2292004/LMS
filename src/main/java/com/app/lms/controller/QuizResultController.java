@@ -121,4 +121,6 @@ public class QuizResultController {
         response.setResult(quizResultService.canTakeQuiz(quizId, currentUserId));
         return response;
     }
+
+
 }

@@ -76,4 +76,11 @@ public class LessonService {
     public void deleteLesson(Long lessonId) {
         lessonRepository.deleteById(lessonId);
     }
+
+    public List<LessonResponse> getLessonsByCourseId(Long courseId) {
+        return lessonRepository.findAll().stream()
+                .filter(lesson -> lesson.getCourseId().equals(courseId))
+                .map(lessonMapper::toLessonResponse)
+                .toList();
+    }
 }

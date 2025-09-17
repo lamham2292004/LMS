@@ -1,5 +1,7 @@
 package com.app.lms.controller;
 
+import com.app.lms.annotation.CurrentUser;
+import com.app.lms.dto.auth.UserTokenInfo;
 import com.app.lms.dto.request.ApiResponse;
 import com.app.lms.dto.request.categoryRequest.CategoryCreateRequest;
 import com.app.lms.dto.request.categoryRequest.CategoryUpdateRequest;
@@ -9,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,48 +21,54 @@ import java.util.List;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CategoryController {
-    final CategoryService categoryService;
+    CategoryService categoryService;
 
-    @PostMapping("createCategory")
-    ApiResponse<CategoryResponse> createCategory(@Valid @RequestBody CategoryCreateRequest request) {
-         ApiResponse<CategoryResponse> apiResponse = new ApiResponse<>();
+    @PostMapping("/createCategory")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LECTURER')")
+    public ApiResponse<CategoryResponse> createCategory(
+            @Valid @RequestBody CategoryCreateRequest request,
+            @CurrentUser UserTokenInfo currentUser) {
 
-         apiResponse.setResult(categoryService.createCategory(request));
-
-         return apiResponse;
+        ApiResponse<CategoryResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(categoryService.createCategory(request));
+        return apiResponse;
     }
 
     @GetMapping("{categoryId}")
-    ApiResponse<CategoryResponse> getCategory(@Valid @PathVariable("categoryId") Long categoryId) {
+    // Public - tất cả user đã login đều xem được
+    public ApiResponse<CategoryResponse> getCategory(@Valid @PathVariable("categoryId") Long categoryId) {
         ApiResponse<CategoryResponse> apiResponse = new ApiResponse<>();
-
         apiResponse.setResult(categoryService.getCategoryById(categoryId));
-
         return apiResponse;
     }
 
     @GetMapping
-    ApiResponse<List<CategoryResponse>> getAllCategory() {
+    // Public - không cần authentication để browse categories
+    public ApiResponse<List<CategoryResponse>> getAllCategory() {
         ApiResponse<List<CategoryResponse>> apiResponse = new ApiResponse<>();
-
         apiResponse.setResult(categoryService.getAllCategories());
-
         return apiResponse;
     }
 
     @PutMapping("{categoryId}")
-    ApiResponse<CategoryResponse> updateCategory( @Valid @PathVariable Long categoryId, @RequestBody CategoryUpdateRequest request) {
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LECTURER')")
+    public ApiResponse<CategoryResponse> updateCategory(
+            @Valid @PathVariable Long categoryId,
+            @RequestBody CategoryUpdateRequest request,
+            @CurrentUser UserTokenInfo currentUser) {
+
         ApiResponse<CategoryResponse> apiResponse = new ApiResponse<>();
-
         apiResponse.setResult(categoryService.updateCategory(categoryId, request));
-
         return apiResponse;
     }
 
     @DeleteMapping("{categoryId}")
-    String deleteCategory(@PathVariable Long categoryId) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<String> deleteCategory(@PathVariable Long categoryId) {
         categoryService.deleteCategory(categoryId);
-        return "Deleted Category";
+        return ApiResponse.<String>builder()
+                .result("Category deleted successfully")
+                .build();
     }
 
 }

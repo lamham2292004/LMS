@@ -60,4 +60,11 @@ public class AnswerOptionService {
     public void deleteAnswerOption (Long answerOptionId) {
         answerOptionRepository.deleteById(answerOptionId);
     }
+
+    public List<AnswerOptionResponse> getAnswerOptionsByQuestionId(Long questionId) {
+        return answerOptionRepository.findAll().stream()
+                .filter(option -> option.getQuestionId().equals(questionId))
+                .map(answerOptionMapper::toAnswerOptionResponse)
+                .toList();
+    }
 }

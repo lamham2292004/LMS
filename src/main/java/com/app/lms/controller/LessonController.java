@@ -1,5 +1,7 @@
 package com.app.lms.controller;
 
+import com.app.lms.annotation.CurrentUser;
+import com.app.lms.dto.auth.UserTokenInfo;
 import com.app.lms.dto.request.ApiResponse;
 import com.app.lms.dto.request.lessonRequest.LessonCreateRequest;
 import com.app.lms.dto.request.lessonRequest.LessonUpdateRequest;
@@ -9,6 +11,8 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,39 +23,46 @@ import java.util.List;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class LessonController {
-    private final LessonService lessonService;
+    LessonService lessonService;
 
     @PostMapping(value = "/createLesson", consumes = {"multipart/form-data"})
+    @PreAuthorize("hasRole('ADMIN') or " +
+            "(hasRole('LECTURER') and @authorizationService.canLecturerCreateLessonInCourse(#request.courseId, authentication.name))")
     public ApiResponse<LessonResponse> createLesson(
             @RequestPart("lesson") @Valid LessonCreateRequest request,
-            @RequestPart(value = "video", required = false) MultipartFile video
-    ) {
+            @RequestPart(value = "video", required = false) MultipartFile video,
+            @CurrentUser UserTokenInfo currentUser) {
+
         ApiResponse<LessonResponse> apiResponse = new ApiResponse<>();
         apiResponse.setResult(lessonService.createLesson(request, video));
         return apiResponse;
     }
 
     @GetMapping("/{lessonId}")
-    ApiResponse<LessonResponse> getLesson(@Valid @PathVariable("lessonId") Long lessonId){
-
+    @PostAuthorize("hasRole('ADMIN') or hasRole('LECTURER') or " +
+            "@authorizationService.canStudentAccessLesson(#lessonId, authentication.name)")
+    public ApiResponse<LessonResponse> getLesson(@Valid @PathVariable("lessonId") Long lessonId) {
+        // Student chỉ xem được lesson của course đã enroll
         ApiResponse<LessonResponse> apiResponse = new ApiResponse<>();
-
         apiResponse.setResult(lessonService.getLessonById(lessonId));
-
         return apiResponse;
     }
 
     @GetMapping
-    ApiResponse<List<LessonResponse>> getAllLesson(){
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LECTURER')")
+    public ApiResponse<List<LessonResponse>> getAllLesson() {
+        // Chỉ Admin/Lecturer mới xem tất cả lessons
         ApiResponse<List<LessonResponse>> apiResponse = new ApiResponse<>();
-
         apiResponse.setResult(lessonService.getAllLessons());
-
         return apiResponse;
     }
 
     @PutMapping("/updateLesson/{lessonId}")
-    ApiResponse<LessonResponse> updateLesson(@PathVariable Long lessonId, @Valid @RequestBody LessonUpdateRequest request){
+    @PreAuthorize("hasRole('ADMIN') or " +
+            "(hasRole('LECTURER') and @authorizationService.canLecturerEditLesson(#lessonId, authentication.name))")
+    public ApiResponse<LessonResponse> updateLesson(
+            @PathVariable Long lessonId,
+            @Valid @RequestBody LessonUpdateRequest request) {
 
         ApiResponse<LessonResponse> apiResponse = new ApiResponse<>();
         apiResponse.setResult(lessonService.updateLesson(lessonId, request));
@@ -59,8 +70,11 @@ public class LessonController {
     }
 
     @DeleteMapping("/{lessonId}")
-    String deleteLesson(@PathVariable Long lessonId){
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<String> deleteLesson(@PathVariable Long lessonId) {
         lessonService.deleteLesson(lessonId);
-        return "Lesson deleted";
+        return ApiResponse.<String>builder()
+                .result("Lesson deleted successfully")
+                .build();
     }
 }

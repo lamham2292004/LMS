@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface LessonRepository extends JpaRepository <Lesson,Long>{
     Boolean existsByTitle (String title);
+
+    List<Lesson> findByCourseId(Long courseId);
 }
