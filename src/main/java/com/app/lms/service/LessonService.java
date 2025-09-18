@@ -74,6 +74,9 @@ public class LessonService {
     }
 
     public void deleteLesson(Long lessonId) {
+        if (!lessonRepository.existsById(lessonId)) {
+            throw new AppException(ErroCode.LESSON_NO_EXISTED);
+        }
         lessonRepository.deleteById(lessonId);
     }
 

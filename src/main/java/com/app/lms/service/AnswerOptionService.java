@@ -58,6 +58,9 @@ public class AnswerOptionService {
     }
 
     public void deleteAnswerOption (Long answerOptionId) {
+        if (!answerOptionRepository.existsById(answerOptionId)) {
+            throw new AppException(ErroCode.ANSWER_OPTION_NO_EXISTED);
+        }
         answerOptionRepository.deleteById(answerOptionId);
     }
 

@@ -6,22 +6,21 @@ import lombok.Getter;
 public enum ErroCode {
     UNCATEGORIZED_EXCEPTION(9999, "Lỗi không xác định"),
     TITLE_INVALID(1001, "Tiêu đề không được để trống"),
-    COURSE_INVALID(1006, "khóa học không được để trống"),
+    COURSE_INVALID(1006, "Khóa học không được để trống"),
     INVALID_KEY(1003, "Lỗi không xác định"),
-    TITLE_EXISTED(1002, "tiêu đề đã tồn tại"),
+    TITLE_EXISTED(1002, "Tiêu đề đã tồn tại"),
     COURSE_NO_EXISTED(1004, "Khóa học không tồn tại"),
     FILE_ERRO(1005, "Lỗi khi upload file"),
     FILE_EXISTED(1007, "File rỗng"),
-    LESSON_NO_EXISTED(1008, "Lớp học không tồn tại"),
-    CATEGORY_NO_EXISTED(1009, "Danh sách không tồn tại"),
-    NAME_CATEGORY_INVALID(1001, "Tên Danh sách đã tồn tại"),
-    ENROLLMENT_NO_EXISTED(1009, "Người đăng ký không tồn tại"),
-    QUIZ_NO_EXISTED(1009, "Bài kiểm tra không tồn tại"),
-    QUESTION_NO_EXISTED(1009, "Câu hỏi không tồn tại"),
-    ANSWER_OPTION_NO_EXISTED(1009, "Đáp án không tồn tại"),
+    LESSON_NO_EXISTED(1008, "Bài học không tồn tại"),
+    CATEGORY_NO_EXISTED(1009, "Danh mục không tồn tại"),
+    NAME_CATEGORY_INVALID(1001, "Tên danh mục đã tồn tại"),
+    ENROLLMENT_NO_EXISTED(1010, "Đăng ký không tồn tại"),
+    QUIZ_NO_EXISTED(1011, "Bài kiểm tra không tồn tại"),
+    QUESTION_NO_EXISTED(1012, "Câu hỏi không tồn tại"),
+    ANSWER_OPTION_NO_EXISTED(1013, "Đáp án không tồn tại"),
 
-    // ===== THÊM CÁC JWT ERROR CODES VÀO ĐÂY =====
-    // Authentication & Authorization errors (2000-2999)
+    // ===== JWT & Authentication Errors (2000-2999) =====
     TOKEN_MISSING(2001, "Token không tồn tại trong request"),
     TOKEN_INVALID(2002, "Token không hợp lệ"),
     TOKEN_EXPIRED(2003, "Token đã hết hạn"),
@@ -37,6 +36,7 @@ public enum ErroCode {
     ADMIN_ONLY(2105, "Chỉ dành cho quản trị viên"),
     NOT_ENROLLED(2106, "Chưa đăng ký khóa học"),
     NOT_YOUR_COURSE(2107, "Không phải khóa học của bạn"),
+    ALREADY_ENROLLED(2108, "Đã đăng ký khóa học này rồi"),
 
     // Quiz Result specific errors (1015-1025)
     QUIZ_ALREADY_SUBMITTED(1015, "Đã nộp bài kiểm tra này rồi"),
@@ -52,6 +52,7 @@ public enum ErroCode {
     USER_NOT_ACTIVE(3002, "Tài khoản đã bị khóa"),
     STUDENT_NOT_FOUND(3003, "Học viên không tồn tại"),
     LECTURER_NOT_FOUND(3004, "Giảng viên không tồn tại");
+
     private int code;
     private String message;
 

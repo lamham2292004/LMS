@@ -16,6 +16,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,6 +32,7 @@ public class EnrollmentController {
 
     // Student tự đăng ký khóa học (secure endpoint)
     @PostMapping("/enroll")
+    @PreAuthorize("hasRole('STUDENT')")
     public ApiResponse<EnrollmentResponse> enrollCourse(
             @Valid @RequestBody EnrollmentCreateRequest request,
             @CurrentUser UserTokenInfo currentUser) {
@@ -51,6 +54,7 @@ public class EnrollmentController {
     }
 
     @PostMapping("/createEnrollment")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LECTURER')")
     public ApiResponse<EnrollmentResponse> createEnrollment(
             @RequestBody EnrollmentCreateRequest request,
             @CurrentUser UserTokenInfo currentUser) {
@@ -68,6 +72,7 @@ public class EnrollmentController {
 
     // Student xem các khóa học đã đăng ký
     @GetMapping("/my-enrollments")
+    @PreAuthorize("hasRole('STUDENT')")
     public ApiResponse<List<EnrollmentResponse>> getMyEnrollments(
             @CurrentUserId Long currentUserId,
             @CurrentUser UserTokenInfo currentUser) {
@@ -83,6 +88,7 @@ public class EnrollmentController {
 
     // Admin/Lecturer xem tất cả
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LECTURER')")
     public ApiResponse<List<EnrollmentResponse>> getAllEnrollment(@CurrentUser UserTokenInfo currentUser) {
 
         // Chỉ admin hoặc lecturer mới xem được tất cả
@@ -97,6 +103,8 @@ public class EnrollmentController {
     }
 
     @GetMapping("/{enrollmentId}")
+    @PostAuthorize("hasRole('ADMIN') or hasRole('LECTURER') or " +
+            "returnObject.result.studentId == authentication.principal.userId")
     public ApiResponse<EnrollmentResponse> getEnrollmentById(
             @Valid @PathVariable("enrollmentId") Long enrollmentId,
             @CurrentUser UserTokenInfo currentUser) {
@@ -116,19 +124,11 @@ public class EnrollmentController {
     }
 
     @PutMapping("/{enrollmentId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LECTURER')")
     public ApiResponse<EnrollmentResponse> updateEnrollmentById(
             @PathVariable Long enrollmentId,
             @Valid @RequestBody EnrollmentUpdateRequest request,
             @CurrentUser UserTokenInfo currentUser) {
-
-        EnrollmentResponse existingEnrollment = enrollmentService.getEnrollmentById(enrollmentId);
-
-        // Student chỉ update được enrollment của mình
-        if (currentUser.getUserType() == UserType.STUDENT) {
-            if (!existingEnrollment.getStudentId().equals(currentUser.getUserId())) {
-                throw new AppException(ErroCode.ACCESS_DENIED);
-            }
-        }
 
         ApiResponse<EnrollmentResponse> response = new ApiResponse<>();
         response.setResult(enrollmentService.updateEnrollment(enrollmentId, request));
@@ -136,6 +136,7 @@ public class EnrollmentController {
     }
 
     @DeleteMapping("/{enrollmentId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<String> deleteEnrollmentById(
             @PathVariable("enrollmentId") Long enrollmentId,
             @CurrentUser UserTokenInfo currentUser) {

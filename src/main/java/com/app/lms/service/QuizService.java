@@ -67,4 +67,10 @@ public class QuizService {
                 .map(quizMapper::toQuizResponse)
                 .toList();
     }
+    public List<QuizResponse> getQuizzesByCourseId(Long courseId) {
+        return quizRepository.findQuizzesByCourse(courseId)
+                .stream()
+                .map(quizMapper::toQuizResponse)
+                .toList();
+    }
 }

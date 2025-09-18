@@ -15,6 +15,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public class QuizResultController {
     QuizResultService quizResultService;
 
     @PostMapping("/submit")
+    @PreAuthorize("hasRole('STUDENT')")
     public ApiResponse<QuizResultResponse> submitQuiz(
             @RequestBody SubmitQuizRequest request,
             @CurrentUser UserTokenInfo currentUser) {
@@ -48,6 +50,7 @@ public class QuizResultController {
     }
 
     @GetMapping("/my-results/{quizId}")
+    @PreAuthorize("hasRole('STUDENT')")
     public ApiResponse<List<QuizResultResponse>> getMyQuizResults(
             @PathVariable Long quizId,
             @CurrentUserId Long currentUserId,
@@ -63,6 +66,7 @@ public class QuizResultController {
     }
 
     @GetMapping("/my-best-result/{quizId}")
+    @PreAuthorize("hasRole('STUDENT')")
     public ApiResponse<QuizResultResponse> getMyBestResult(
             @PathVariable Long quizId,
             @CurrentUserId Long currentUserId,
@@ -78,6 +82,7 @@ public class QuizResultController {
     }
 
     @GetMapping("/my-course-results/{courseId}")
+    @PreAuthorize("hasRole('STUDENT')")
     public ApiResponse<List<QuizResultResponse>> getMyCourseResults(
             @PathVariable Long courseId,
             @CurrentUserId Long currentUserId,
@@ -93,6 +98,7 @@ public class QuizResultController {
     }
 
     @GetMapping("/quiz/{quizId}/all-results")
+    @PreAuthorize("hasRole('ADMIN') or "+"(hasRole('LECTURER' and @authorizationService.canLecturerEditQuiz(#quizId,authentication.name)))")
     public ApiResponse<List<QuizResultResponse>> getAllQuizResults(
             @PathVariable Long quizId,
             @CurrentUser UserTokenInfo currentUser) {
@@ -108,6 +114,7 @@ public class QuizResultController {
     }
     //check student hiện tại có thể làm quiz không
     @GetMapping("/can-take/{quizId}")
+    @PreAuthorize("hasRole('STUDENT')")
     public ApiResponse<Boolean> canTakeQuiz(
             @PathVariable Long quizId,
             @CurrentUserId Long currentUserId,

@@ -26,6 +26,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request ->
                         request.requestMatchers("/api/test/**").permitAll() // Public test endpoints
                                 .requestMatchers(HttpMethod.GET,"/api/category", "/api/course").permitAll() // Browse public
+                                .requestMatchers(("/uploads/**")).permitAll()
                                 .anyRequest().authenticated() // Tất cả endpoints khác cần authentication
                 )
                 // Add JWT filter

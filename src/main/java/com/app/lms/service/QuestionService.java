@@ -56,6 +56,9 @@ public class QuestionService {
     }
 
     public void deleteQuestion(Long questionId) {
+        if (!questionRepository.existsById(questionId)) {
+            throw new AppException(ErroCode.QUESTION_NO_EXISTED);
+        }
         questionRepository.deleteById(questionId);
     }
 
