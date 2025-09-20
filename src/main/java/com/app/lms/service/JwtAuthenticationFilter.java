@@ -59,7 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Create authentication object
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                userInfo.getEmail(), // principal (username)
+                                userInfo.getUserId().toString(),
                                 null, // credentials (không cần password)
                                 authorities
                         );
@@ -70,13 +70,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Set authentication in context
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                log.debug("JWT Authentication successful for user: {} with roles: {}",
-                        userInfo.getEmail(), authorities);
+                log.debug("JWT Authentication successful for user: {} (ID: {}) with roles: {}",
+                        userInfo.getEmail(), userInfo.getUserId(), authorities);
             }
 
         } catch (AppException e) {
             log.warn("JWT Authentication failed: {}", e.getMessage());
-            // Không throw exception, để Spring Security xử lý unauthorized
         } catch (Exception e) {
             log.error("Unexpected error in JWT filter: {}", e.getMessage());
         }
@@ -89,20 +88,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         UserType userType = userInfo.getUserType();
 
-        // Convert UserType thành Spring Security roles
         switch (userType) {
             case STUDENT -> authorities.add(new SimpleGrantedAuthority("ROLE_STUDENT"));
             case LECTURER -> {
                 authorities.add(new SimpleGrantedAuthority("ROLE_LECTURER"));
-                // Nếu là admin lecturer
                 if (Boolean.TRUE.equals(userInfo.getIsAdmin())) {
                     authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
                 }
             }
             case ADMIN -> {
                 authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-                authorities.add(new SimpleGrantedAuthority("ROLE_LECTURER")); // Admin có quyền lecturer
-                authorities.add(new SimpleGrantedAuthority("ROLE_STUDENT"));  // Admin có quyền student
+                authorities.add(new SimpleGrantedAuthority("ROLE_LECTURER"));
+                authorities.add(new SimpleGrantedAuthority("ROLE_STUDENT"));
             }
         }
 
@@ -111,7 +108,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private boolean isPublicEndpoint(String requestPath) {
         return requestPath.startsWith("/api/test/") ||
-                (requestPath.equals("/api/category") && "GET".equals("GET")) ||
-                (requestPath.equals("/api/course") && "GET".equals("GET"));
+                requestPath.equals("/api/category") ||
+                requestPath.equals("/api/course") ||
+                requestPath.startsWith("/api/health") ||
+                requestPath.startsWith("/uploads/");
     }
 }

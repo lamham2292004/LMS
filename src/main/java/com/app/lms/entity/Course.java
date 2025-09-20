@@ -25,7 +25,7 @@ public class Course {
     Long id;
 
     @Column(nullable = false)
-    String title;
+    String title; // tên khóa học
 
     @Column(columnDefinition = "TEXT")
     String description;

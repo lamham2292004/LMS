@@ -1,10 +1,13 @@
 package com.app.lms.service;
 
+import com.app.lms.dto.auth.UserTokenInfo;
 import com.app.lms.entity.*;
 import com.app.lms.enums.EnrollmentStatus;
 import com.app.lms.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
 
@@ -20,180 +23,198 @@ public class AuthorizationService {
     private final AnswerOptionRepository answerOptionRepository;
 
     // Course authorization methods
-    //Phương thức này kiểm tra xem một sinh viên có đăng ký và đang ở trạng thái ACTIVE trong một khóa học cụ thể hay không.
-    public boolean isStudentEnrolledInCourse(Long courseId, String userEmail) {
+    public boolean isStudentEnrolledInCourse(Long courseId, String userIdStr) {
         try {
-            // Tìm student qua email và check enrollment
-            return enrollmentRepository.findAll().stream()
-                    .anyMatch(enrollment ->
-                                    enrollment.getCourseId().equals(courseId) &&
-                                            enrollment.getStatus() == EnrollmentStatus.ACTIVE
-                            // TODO: Add student email check when you have student service
-                    );
+            Long studentId = Long.parseLong(userIdStr);
+
+            boolean enrolled = enrollmentRepository.existsByStudentIdAndCourseIdAndStatus(
+                    studentId, courseId, EnrollmentStatus.ACTIVE);
+
+            log.debug("Enrollment check: studentId={}, courseId={}, enrolled={}",
+                    studentId, courseId, enrolled);
+            return enrolled;
+
+        } catch (NumberFormatException e) {
+            log.error("Invalid userId format: {}", userIdStr);
+            return false;
         } catch (Exception e) {
-            log.error("Error checking student enrollment: {}", e.getMessage());
+            log.error("Error checking enrollment: {}", e.getMessage());
             return false;
         }
     }
-    //Phương thức này có nhiệm vụ kiểm tra xem giảng viên có sở hữu khóa học hay không.
-    public boolean isLecturerOwnsCourse(Long courseId, String userEmail) {
+
+    public boolean isLecturerOwnsCourse(Long courseId, String userIdStr) {
         try {
+            Long lecturerId = Long.parseLong(userIdStr);
+
             Optional<Course> course = courseRepository.findById(courseId);
-            if (course.isEmpty()) return false;
+            if (course.isEmpty()) {
+                log.warn("Course not found: {}", courseId);
+                return false;
+            }
 
-            // TODO: Implement proper lecturer email check with teacherId
-            // Hiện tại return true cho development
-            return true;
+            boolean owns = course.get().getTeacherId().equals(lecturerId);
+            log.debug("Course ownership check: lecturerId={}, courseId={}, owns={}",
+                    lecturerId, courseId, owns);
+            return owns;
+
+        } catch (NumberFormatException e) {
+            log.error("Invalid userId format: {}", userIdStr);
+            return false;
         } catch (Exception e) {
-            log.error("Error checking lecturer ownership: {}", e.getMessage());
+            log.error("Error checking course ownership: {}", e.getMessage());
             return false;
         }
     }
 
-    // Lesson authorization methods
-    //Kiểm tra xem một giảng viên (được xác định bởi userEmail) có được phép tạo một bài giảng trong một khóa học (courseId) hay không.
-    public boolean canLecturerCreateLessonInCourse(Long courseId, String userEmail) {
-        return isLecturerOwnsCourse(courseId, userEmail);
+    // Lesson methods
+    public boolean canLecturerCreateLessonInCourse(Long courseId, String userIdStr) {
+        return isLecturerOwnsCourse(courseId, userIdStr);
     }
-    //Kiểm tra xem một sinh viên có được phép truy cập một bài giảng (lessonId) cụ thể hay không.
-    public boolean canStudentAccessLesson(Long lessonId, String userEmail) {
+
+    public boolean canStudentAccessLesson(Long lessonId, String userIdStr) {
         try {
             Optional<Lesson> lesson = lessonRepository.findById(lessonId);
             if (lesson.isEmpty()) return false;
 
-            return isStudentEnrolledInCourse(lesson.get().getCourseId(), userEmail);
+            return isStudentEnrolledInCourse(lesson.get().getCourseId(), userIdStr);
         } catch (Exception e) {
             log.error("Error checking lesson access: {}", e.getMessage());
             return false;
         }
     }
-    //Kiểm tra xem một giảng viên có được phép chỉnh sửa một bài giảng (lessonId) hay không
-    public boolean canLecturerEditLesson(Long lessonId, String userEmail) {
+
+    public boolean canLecturerEditLesson(Long lessonId, String userIdStr) {
         try {
             Optional<Lesson> lesson = lessonRepository.findById(lessonId);
             if (lesson.isEmpty()) return false;
 
-            return isLecturerOwnsCourse(lesson.get().getCourseId(), userEmail);
+            return isLecturerOwnsCourse(lesson.get().getCourseId(), userIdStr);
         } catch (Exception e) {
             log.error("Error checking lesson edit permission: {}", e.getMessage());
             return false;
         }
     }
 
-    // Quiz authorization methods
-    //Kiểm tra xem một giảng viên có được phép tạo một bài trắc nghiệm trong một bài giảng (lessonId) hay không.
-    public boolean canLecturerCreateQuizInLesson(Long lessonId, String userEmail) {
-        return canLecturerEditLesson(lessonId, userEmail);
+    // Quiz methods
+    public boolean canLecturerCreateQuizInLesson(Long lessonId, String userIdStr) {
+        return canLecturerEditLesson(lessonId, userIdStr);
     }
-    //Kiểm tra xem một sinh viên có được phép truy cập một bài trắc nghiệm (quizId) hay không.
-    public boolean canStudentAccessQuiz(Long quizId, String userEmail) {
+
+    public boolean canStudentAccessQuiz(Long quizId, String userIdStr) {
         try {
             Optional<Quiz> quiz = quizRepository.findById(quizId);
             if (quiz.isEmpty()) return false;
 
-            return canStudentAccessLesson(quiz.get().getLessonId(), userEmail);
+            return canStudentAccessLesson(quiz.get().getLessonId(), userIdStr);
         } catch (Exception e) {
             log.error("Error checking quiz access: {}", e.getMessage());
             return false;
         }
     }
-    // kiếm tra xem giảng viên có được sửa 1 bài trắc nghiệm hay không
-    public boolean canLecturerEditQuiz(Long quizId, String userEmail) {
+
+    public boolean canLecturerEditQuiz(Long quizId, String userIdStr) {
         try {
             Optional<Quiz> quiz = quizRepository.findById(quizId);
             if (quiz.isEmpty()) return false;
 
-            return canLecturerCreateQuizInLesson(quiz.get().getLessonId(), userEmail);
+            return canLecturerCreateQuizInLesson(quiz.get().getLessonId(), userIdStr);
         } catch (Exception e) {
             log.error("Error checking quiz edit permission: {}", e.getMessage());
             return false;
         }
     }
 
-    // Question authorization methods
-    // Kiểm tra xem một giảng viên có được phép tạo một câu hỏi trong một bài trắc nghiệm (quizId) hay không.
-    public boolean canLecturerCreateQuestion(Long quizId, String userEmail) {
-        try {
-            Optional<Quiz> quiz = quizRepository.findById(quizId);
-            if (quiz.isEmpty()) return false;
-
-            return canLecturerCreateQuizInLesson(quiz.get().getLessonId(), userEmail);
-        } catch (Exception e) {
-            log.error("Error checking question creation permission: {}", e.getMessage());
-            return false;
-        }
+    // Question methods
+    public boolean canLecturerCreateQuestion(Long quizId, String userIdStr) {
+        return canLecturerEditQuiz(quizId, userIdStr);
     }
-    //Kiểm tra xem một sinh viên có được phép xem một câu hỏi (questionId) hay không.
-    public boolean canStudentViewQuestion(Long questionId, String userEmail) {
+
+    public boolean canStudentViewQuestion(Long questionId, String userIdStr) {
         try {
             Optional<Question> question = questionRepository.findById(questionId);
             if (question.isEmpty()) return false;
 
-            return canStudentAccessQuiz(question.get().getQuizId(), userEmail);
+            return canStudentAccessQuiz(question.get().getQuizId(), userIdStr);
         } catch (Exception e) {
-            log.error("Error checking question view permission: {}", e.getMessage());
+            log.error("Error checking question access: {}", e.getMessage());
             return false;
         }
     }
-    // kiếm tra xem giảng viên có được sửa 1 câu hỏi hay không
-    public boolean canLecturerEditQuestion(Long questionId, String userEmail) {
+
+    public boolean canLecturerEditQuestion(Long questionId, String userIdStr) {
         try {
             Optional<Question> question = questionRepository.findById(questionId);
             if (question.isEmpty()) return false;
 
-            return canLecturerCreateQuizInLesson(question.get().getQuizId(), userEmail);
+            return canLecturerCreateQuestion(question.get().getQuizId(), userIdStr);
         } catch (Exception e) {
             log.error("Error checking question edit permission: {}", e.getMessage());
             return false;
         }
     }
 
-    // AnswerOption authorization methods
-    //Kiểm tra xem một giảng viên có được phép tạo một đáp án trong một câu hỏi (questionId) hay không.
-    public boolean canLecturerCreateAnswerOption(Long questionId, String userEmail) {
-        try {
-            Optional<Question> question = questionRepository.findById(questionId);
-            if (question.isEmpty()) return false;
-
-            return canLecturerCreateQuestion(question.get().getQuizId(), userEmail);
-        } catch (Exception e) {
-            log.error("Error checking answer option creation permission: {}", e.getMessage());
-            return false;
-        }
+    // AnswerOption methods
+    public boolean canLecturerCreateAnswerOption(Long questionId, String userIdStr) {
+        return canLecturerEditQuestion(questionId, userIdStr);
     }
-    //Kiểm tra xem một sinh viên có được phép xem một đáp án
-    public boolean canStudentViewAnswerOption(Long answerOptionId, String userEmail) {
+
+    public boolean canStudentViewAnswerOption(Long answerOptionId, String userIdStr) {
         try {
             Optional<AnswerOption> answerOption = answerOptionRepository.findById(answerOptionId);
             if (answerOption.isEmpty()) return false;
 
-            return canStudentViewQuestion(answerOption.get().getQuestionId(), userEmail);
+            return canStudentViewQuestion(answerOption.get().getQuestionId(), userIdStr);
         } catch (Exception e) {
-            log.error("Error checking answer option view permission: {}", e.getMessage());
+            log.error("Error checking answer option access: {}", e.getMessage());
             return false;
         }
     }
-    // kiếm tra xem giảng viên có được sửa đáp án câu hỏi hay không
-    public boolean canLecturerEditAnswerOption(Long answerOptionId, String userEmail) {
+
+    public boolean canLecturerEditAnswerOption(Long answerOptionId, String userIdStr) {
         try {
             Optional<AnswerOption> answerOption = answerOptionRepository.findById(answerOptionId);
             if (answerOption.isEmpty()) return false;
-            return canLecturerEditQuestion(answerOption.get().getQuestionId(), userEmail);
-        }catch (Exception e){
-            log.error("Error checking answer option view permission: {}", e.getMessage());
+
+            return canLecturerEditQuestion(answerOption.get().getQuestionId(), userIdStr);
+        } catch (Exception e) {
+            log.error("Error checking answer option edit permission: {}", e.getMessage());
             return false;
         }
     }
 
-    public boolean canStudentViewQuestionAnswers(Long questionId, String userEmail) {
-        return canStudentViewQuestion(questionId, userEmail);
+    // Convenience methods
+    public boolean canStudentViewQuestionAnswers(Long questionId, String userIdStr) {
+        return canStudentViewQuestion(questionId, userIdStr);
     }
 
-    public boolean canStudentViewQuizQuestions(Long quizId, String userEmail) {
-        return canStudentAccessQuiz(quizId, userEmail);
+    public boolean canStudentViewQuizQuestions(Long quizId, String userIdStr) {
+        return canStudentAccessQuiz(quizId, userIdStr);
     }
 
-    public boolean canStudentAccessLessonQuizzes(Long lessonId, String userEmail) {
-        return canStudentAccessLesson(lessonId, userEmail);
+    public boolean canStudentAccessLessonQuizzes(Long lessonId, String userIdStr) {
+        return canStudentAccessLesson(lessonId, userIdStr);
+    }
+
+    public boolean canStudentAccessCourseQuizzes(Long courseId, String userIdStr) {
+        return isStudentEnrolledInCourse(courseId, userIdStr);
+    }
+
+    // Enrollment validation
+    public boolean validateEnrollmentAccess(Long enrollmentId, String userIdStr) {
+        try {
+            Long userId = Long.parseLong(userIdStr);
+            Optional<Enrollment> enrollment = enrollmentRepository.findById(enrollmentId);
+
+            if (enrollment.isEmpty()) return false;
+
+            return enrollment.get().getStudentId().equals(userId);
+        } catch (NumberFormatException e) {
+            log.error("Invalid userId format: {}", userIdStr);
+            return false;
+        } catch (Exception e) {
+            log.error("Error checking enrollment access: {}", e.getMessage());
+            return false;
+        }
     }
 }
