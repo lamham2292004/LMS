@@ -1207,7 +1207,7 @@ public class JwtTokenUtil {
 
 ---
 
-## 📋 **Test API với Postman**
+## 📋 **Test API với Postman - Hướng Dẫn Đầy Đủ**
 
 ### 🚀 **Setup Postman Environment**
 
@@ -1217,17 +1217,22 @@ public class JwtTokenUtil {
   ```
   base_url: http://localhost:8083/api
   jwt_token: (sẽ set sau khi login)
+  student_token: (JWT token của student)
+  lecturer_token: (JWT token của lecturer) 
+  admin_token: (JWT token của admin)
   ```
 
-#### 2. Tạo Collection: `LMS API Tests`
+#### 2. Tạo Collection: `LMS API Complete Tests`
 
 ---
 
-### 🧪 **Test Scenarios Chi Tiết**
+## 🧪 **Test Tất Cả APIs Theo Controller**
 
-#### **Scenario 1: Health Check (Kiểm tra sức khỏe hệ thống)**
+---
 
-**Request:**
+### 🏥 **1. HEALTH CONTROLLER APIs**
+
+#### **1.1 Health Check**
 ```http
 GET {{base_url}}/health
 ```
@@ -1245,59 +1250,102 @@ GET {{base_url}}/health
 }
 ```
 
-**✅ Success Indicators:**
-- Status code: `200 OK`
-- Response có field `status: "UP"`
+---
 
-**❌ Failure Cases:**
-- Status code `500` -> Server không hoạt động
-- Response rỗng -> Database connection lỗi
+### 🧪 **2. JWT TEST CONTROLLER APIs**
+
+#### **2.1 Test Simple (Public)**
+```http
+GET {{base_url}}/test/simple
+```
+
+**Expected Response:**
+```json
+{
+    "code": 1000,
+    "result": "Server hoạt động OK - không cần token!"
+}
+```
+
+#### **2.2 Get Current User Info**
+```http
+GET {{base_url}}/test/me
+Authorization: Bearer {{jwt_token}}
+```
+
+**Expected Response:**
+```json
+{
+    "code": 1000,
+    "result": {
+        "userId": 1,
+        "accountId": 1,
+        "username": "student123",
+        "email": "student@example.com",
+        "fullName": "Nguyễn Văn A",
+        "userType": "STUDENT",
+        "studentCode": "SV001",
+        "classId": 1,
+        "isAdmin": false
+    }
+}
+```
+
+#### **2.3 Get Current User ID**
+```http
+GET {{base_url}}/test/my-id
+Authorization: Bearer {{jwt_token}}
+```
+
+**Expected Response:**
+```json
+{
+    "code": 1000,
+    "result": 1
+}
+```
 
 ---
 
-#### **Scenario 2: Browse Public Content (Duyệt nội dung công khai)**
+### 📂 **3. CATEGORY CONTROLLER APIs**
 
-**Test 2a: Lấy danh sách Categories**
+#### **3.1 Browse All Categories (Public)**
 ```http
 GET {{base_url}}/category
 ```
 
-**Test 2b: Lấy danh sách Courses**
-```http
-GET {{base_url}}/course
-```
-
-**Expected Response Format:**
+**Expected Response:**
 ```json
 {
     "code": 1000,
     "result": [
         {
             "id": 1,
-            "title": "Course Title",
-            "description": "Course Description",
-            // ... other fields
+            "name": "Lập Trình",
+            "description": "Các khóa học lập trình",
+            "createdAt": "2024-01-15T10:30:00Z",
+            "updatedAt": "2024-01-15T10:30:00Z",
+            "courses": []
         }
     ]
 }
 ```
 
----
-
-#### **Scenario 3: JWT Token Testing**
-
-**⚠️ Lưu ý:** Bạn cần có JWT token hợp lệ từ Identity Service trước khi test.
-
-**Test 3a: Test với token hợp lệ**
+#### **3.2 Get Category By ID (Public)**
 ```http
-GET {{base_url}}/test/me
-Authorization: Bearer {{jwt_token}}
+GET {{base_url}}/category/1
 ```
 
-**Test 3b: Test với token không hợp lệ**
+#### **3.3 Create Category (ADMIN/LECTURER only)**
 ```http
-GET {{base_url}}/test/me
-Authorization: Bearer invalid_token_here
+POST {{base_url}}/category/createCategory
+Authorization: Bearer {{lecturer_token}}
+Content-Type: application/json
+
+{
+    "name": "Thiết Kế Đồ Họa",
+    "description": "Các khóa học về thiết kế và đồ họa"
+}
 ```
 
 **Expected Success Response:**
@@ -1305,69 +1353,468 @@ Authorization: Bearer invalid_token_here
 {
     "code": 1000,
     "result": {
-        "userId": 1,
-        "username": "student123",
-        "email": "student@example.com",
-        "fullName": "Nguyễn Văn A",
-        "userType": "STUDENT"
+        "id": 2,
+        "name": "Thiết Kế Đồ Họa",
+        "description": "Các khóa học về thiết kế và đồ họa",
+        "createdAt": "2024-01-15T11:00:00Z",
+        "updatedAt": "2024-01-15T11:00:00Z",
+        "courses": []
     }
 }
 ```
 
-**Expected Error Response (Invalid Token):**
+#### **3.4 Update Category (ADMIN/LECTURER only)**
+```http
+PUT {{base_url}}/category/1
+Authorization: Bearer {{lecturer_token}}
+Content-Type: application/json
+
+{
+    "name": "Lập Trình Nâng Cao",
+    "description": "Các khóa học lập trình từ cơ bản đến nâng cao"
+}
+```
+
+#### **3.5 Delete Category (ADMIN only)**
+```http
+DELETE {{base_url}}/category/1
+Authorization: Bearer {{admin_token}}
+```
+
+**Expected Response:**
 ```json
 {
-    "code": 2002,
-    "message": "Token không hợp lệ"
+    "code": 1000,
+    "result": "Category deleted successfully"
 }
 ```
 
 ---
 
-#### **Scenario 4: Course Management (Quản lý khóa học)**
+### 📚 **4. COURSE CONTROLLER APIs**
 
-**Test 4a: Tạo Category (ADMIN/LECTURER only)**
+#### **4.1 Browse All Courses (Public)**
 ```http
-POST {{base_url}}/category/createCategory
-Authorization: Bearer {{jwt_token}}
-Content-Type: application/json
+GET {{base_url}}/course
+```
 
+**Expected Response:**
+```json
 {
-    "name": "Lập Trình Web",
-    "description": "Các khóa học về lập trình web hiện đại"
+    "code": 1000,
+    "result": [
+        {
+            "id": 1,
+            "title": "Java Spring Boot Cơ Bản",
+            "description": "Học Spring Boot từ đầu",
+            "price": 500000,
+            "teacherId": 2,
+            "status": "OPEN",
+            "startTime": "2024-02-01T08:00:00Z",
+            "endTime": "2024-04-01T17:00:00Z",
+            "createdAt": "2024-01-15T10:30:00Z",
+            "updatedAt": "2024-01-15T10:30:00Z",
+            "categoryId": 1,
+            "categoryName": "Lập Trình",
+            "img": "/uploads/courses/1642234567890_java.jpg",
+            "lessons": [],
+            "enrollments": []
+        }
+    ]
 }
 ```
 
-**Test 4b: Tạo Course với file upload**
+#### **4.2 Get Course By ID (Enrolled Students only)**
+```http
+GET {{base_url}}/course/1
+Authorization: Bearer {{student_token}}
+```
+
+#### **4.3 Create Course with Image Upload (ADMIN/LECTURER)**
 ```http
 POST {{base_url}}/course/createCourse
-Authorization: Bearer {{jwt_token}}
+Authorization: Bearer {{lecturer_token}}
 Content-Type: multipart/form-data
 
 Form Data:
 - course: {
-    "title": "Spring Boot Cơ Bản",
-    "description": "Khóa học Spring Boot từ cơ bản đến nâng cao",
-    "price": 299000,
+    "title": "React.js Toàn Tập",
+    "description": "Khóa học React.js từ cơ bản đến nâng cao với các project thực tế",
+    "price": 800000,
     "categoryId": 1,
-    "status": "OPEN"
+    "status": "UPCOMING",
+    "startTime": "2024-03-01T08:00:00Z",
+    "endTime": "2024-05-01T17:00:00Z"
   }
-- file: [Chọn file ảnh]
+- file: [Chọn file ảnh khóa học]
 ```
 
-**⚠️ Postman Setup cho multipart/form-data:**
+**⚠️ Postman Setup:**
 1. Chọn `Body` -> `form-data`
 2. Key `course`: Type `Text`, Value là JSON string
-3. Key `file`: Type `File`, chọn file ảnh
+3. Key `file`: Type `File`, browse và chọn ảnh
+
+#### **4.4 Update Course (ADMIN/Course Owner)**
+```http
+PUT {{base_url}}/course/updateCourse/1
+Authorization: Bearer {{lecturer_token}}
+Content-Type: application/json
+
+{
+    "title": "Java Spring Boot Nâng Cao",
+    "description": "Khóa học Spring Boot nâng cao với microservices",
+    "price": 750000,
+    "status": "OPEN"
+}
+```
+
+#### **4.5 Delete Course (ADMIN only)**
+```http
+DELETE {{base_url}}/course/1
+Authorization: Bearer {{admin_token}}
+```
 
 ---
 
-#### **Scenario 5: Enrollment Flow (Luồng ghi danh)**
+### 📖 **5. LESSON CONTROLLER APIs**
 
-**Test 5a: Student enroll vào course**
+#### **5.1 Get All Lessons (ADMIN/LECTURER only)**
+```http
+GET {{base_url}}/lesson
+Authorization: Bearer {{lecturer_token}}
+```
+
+#### **5.2 Get Lesson By ID (Enrolled Students/LECTURER/ADMIN)**
+```http
+GET {{base_url}}/lesson/1
+Authorization: Bearer {{student_token}}
+```
+
+#### **5.3 Create Lesson with Video Upload**
+```http
+POST {{base_url}}/lesson/createLesson
+Authorization: Bearer {{lecturer_token}}
+Content-Type: multipart/form-data
+
+Form Data:
+- lesson: {
+    "courseId": 1,
+    "title": "Giới Thiệu về Spring Boot",
+    "description": "Bài học đầu tiên về Spring Boot framework",
+    "orderIndex": 1,
+    "status": "OPEN",
+    "duration": 45
+  }
+- video: [Chọn file video bài học - tùy chọn]
+```
+
+**Expected Success Response:**
+```json
+{
+    "code": 1000,
+    "result": {
+        "id": 1,
+        "courseId": 1,
+        "title": "Giới Thiệu về Spring Boot",
+        "description": "Bài học đầu tiên về Spring Boot framework",
+        "orderIndex": 1,
+        "duration": 45,
+        "createdAt": "2024-01-15T11:30:00Z",
+        "updatedAt": "2024-01-15T11:30:00Z",
+        "videoPath": "/uploads/lessons/videos/1642237890123_intro.mp4",
+        "status": "OPEN"
+    }
+}
+```
+
+#### **5.4 Update Lesson**
+```http
+PUT {{base_url}}/lesson/updateLesson/1
+Authorization: Bearer {{lecturer_token}}
+Content-Type: application/json
+
+{
+    "title": "Giới Thiệu về Spring Boot - Cập Nhật",
+    "description": "Bài học giới thiệu Spring Boot với nội dung mới",
+    "orderIndex": 1,
+    "status": "OPEN",
+    "duration": 50
+}
+```
+
+#### **5.5 Delete Lesson (ADMIN only)**
+```http
+DELETE {{base_url}}/lesson/1
+Authorization: Bearer {{admin_token}}
+```
+
+---
+
+### 🎯 **6. QUIZ CONTROLLER APIs**
+
+#### **6.1 Get All Quizzes (ADMIN/LECTURER only)**
+```http
+GET {{base_url}}/quiz
+Authorization: Bearer {{lecturer_token}}
+```
+
+#### **6.2 Get Quiz By ID**
+```http
+GET {{base_url}}/quiz/1
+Authorization: Bearer {{student_token}}
+```
+
+#### **6.3 Get Quizzes By Lesson**
+```http
+GET {{base_url}}/quiz/lesson/1
+Authorization: Bearer {{student_token}}
+```
+
+#### **6.4 Get Quizzes By Course**
+```http
+GET {{base_url}}/quiz/course/1
+Authorization: Bearer {{student_token}}
+```
+
+#### **6.5 Create Quiz (ADMIN/LECTURER)**
+```http
+POST {{base_url}}/quiz
+Authorization: Bearer {{lecturer_token}}
+Content-Type: application/json
+
+{
+    "lessonId": 1,
+    "title": "Kiểm Tra Spring Boot Cơ Bản",
+    "description": "Bài kiểm tra đánh giá kiến thức Spring Boot cơ bản",
+    "timeLimit": 30,
+    "maxAttempts": 3,
+    "passScore": 70.0
+}
+```
+
+**Expected Response:**
+```json
+{
+    "code": 1000,
+    "result": {
+        "id": 1,
+        "lessonId": 1,
+        "title": "Kiểm Tra Spring Boot Cơ Bản",
+        "description": "Bài kiểm tra đánh giá kiến thức Spring Boot cơ bản",
+        "timeLimit": 30,
+        "maxAttempts": 3,
+        "passScore": 70.0,
+        "createdAt": "2024-01-15T12:00:00Z",
+        "updatedAt": "2024-01-15T12:00:00Z",
+        "questions": [],
+        "quizResults": []
+    }
+}
+```
+
+#### **6.6 Update Quiz**
+```http
+PUT {{base_url}}/quiz/1
+Authorization: Bearer {{lecturer_token}}
+Content-Type: application/json
+
+{
+    "title": "Kiểm Tra Spring Boot Nâng Cao",
+    "description": "Bài kiểm tra nâng cao về Spring Boot",
+    "timeLimit": 45,
+    "maxAttempts": 2,
+    "passScore": 75.0
+}
+```
+
+#### **6.7 Delete Quiz (ADMIN only)**
+```http
+DELETE {{base_url}}/quiz/1
+Authorization: Bearer {{admin_token}}
+```
+
+---
+
+### ❓ **7. QUESTION CONTROLLER APIs**
+
+#### **7.1 Get All Questions (ADMIN/LECTURER only)**
+```http
+GET {{base_url}}/question
+Authorization: Bearer {{lecturer_token}}
+```
+
+#### **7.2 Get Question By ID**
+```http
+GET {{base_url}}/question/1
+Authorization: Bearer {{student_token}}
+```
+
+#### **7.3 Get Questions By Quiz**
+```http
+GET {{base_url}}/question/quiz/1
+Authorization: Bearer {{student_token}}
+```
+
+#### **7.4 Create Question (ADMIN/LECTURER)**
+```http
+POST {{base_url}}/question
+Authorization: Bearer {{lecturer_token}}
+Content-Type: application/json
+
+{
+    "quizId": 1,
+    "questionText": "Spring Boot là framework của ngôn ngữ lập trình nào?",
+    "questionType": "MULTIPLE_CHOICE",
+    "points": 10.0,
+    "orderIndex": 1
+}
+```
+
+**Expected Response:**
+```json
+{
+    "code": 1000,
+    "result": {
+        "id": 1,
+        "quizId": 1,
+        "questionText": "Spring Boot là framework của ngôn ngữ lập trình nào?",
+        "questionType": "MULTIPLE_CHOICE",
+        "orderIndex": 1,
+        "points": 10.0,
+        "createdAt": "2024-01-15T12:15:00Z",
+        "updatedAt": "2024-01-15T12:15:00Z",
+        "answerOptions": []
+    }
+}
+```
+
+#### **7.5 Update Question**
+```http
+PUT {{base_url}}/question/1
+Authorization: Bearer {{lecturer_token}}
+Content-Type: application/json
+
+{
+    "questionText": "Spring Boot framework được viết bằng ngôn ngữ lập trình nào?",
+    "questionType": "MULTIPLE_CHOICE",
+    "points": 15.0,
+    "orderIndex": 1
+}
+```
+
+#### **7.6 Delete Question (ADMIN only)**
+```http
+DELETE {{base_url}}/question/1
+Authorization: Bearer {{admin_token}}
+```
+
+---
+
+### 💡 **8. ANSWER OPTION CONTROLLER APIs**
+
+#### **8.1 Get All Answer Options (ADMIN/LECTURER only)**
+```http
+GET {{base_url}}/answerOption
+Authorization: Bearer {{lecturer_token}}
+```
+
+#### **8.2 Get Answer Option By ID**
+```http
+GET {{base_url}}/answerOption/1
+Authorization: Bearer {{student_token}}
+```
+
+#### **8.3 Get Answer Options By Question**
+```http
+GET {{base_url}}/answerOption/question/1
+Authorization: Bearer {{student_token}}
+```
+
+#### **8.4 Create Answer Option (ADMIN/LECTURER)**
+```http
+POST {{base_url}}/answerOption
+Authorization: Bearer {{lecturer_token}}
+Content-Type: application/json
+
+{
+    "questionId": 1,
+    "answerText": "Java",
+    "isCorrect": true,
+    "orderIndex": 1
+}
+```
+
+#### **8.5 Create Additional Answer Options**
+
+**Option B (Sai):**
+```http
+POST {{base_url}}/answerOption
+Authorization: Bearer {{lecturer_token}}
+Content-Type: application/json
+
+{
+    "questionId": 1,
+    "answerText": "Python",
+    "isCorrect": false,
+    "orderIndex": 2
+}
+```
+
+**Option C (Sai):**
+```http
+POST {{base_url}}/answerOption
+Authorization: Bearer {{lecturer_token}}
+Content-Type: application/json
+
+{
+    "questionId": 1,
+    "answerText": "JavaScript",
+    "isCorrect": false,
+    "orderIndex": 3
+}
+```
+
+**Option D (Sai):**
+```http
+POST {{base_url}}/answerOption
+Authorization: Bearer {{lecturer_token}}
+Content-Type: application/json
+
+{
+    "questionId": 1,
+    "answerText": "C#",
+    "isCorrect": false,
+    "orderIndex": 4
+}
+```
+
+#### **8.6 Update Answer Option**
+```http
+PUT {{base_url}}/answerOption/1
+Authorization: Bearer {{lecturer_token}}
+Content-Type: application/json
+
+{
+    "answerText": "Java Programming Language",
+    "isCorrect": true,
+    "orderIndex": 1
+}
+```
+
+#### **8.7 Delete Answer Option (ADMIN only)**
+```http
+DELETE {{base_url}}/answerOption/1
+Authorization: Bearer {{admin_token}}
+```
+
+---
+
+### 📝 **9. ENROLLMENT CONTROLLER APIs**
+
+#### **9.1 Student Self-Enroll (STUDENT only)**
 ```http
 POST {{base_url}}/enrollment/enroll
-Authorization: Bearer {{jwt_token}}  // JWT của STUDENT
+Authorization: Bearer {{student_token}}
 Content-Type: application/json
 
 {
@@ -1375,96 +1822,163 @@ Content-Type: application/json
 }
 ```
 
-**Test 5b: Xem courses đã enroll**
-```http
-GET {{base_url}}/enrollment/my-enrollments
-Authorization: Bearer {{jwt_token}}  // JWT của STUDENT
+**Expected Success Response:**
+```json
+{
+    "code": 1000,
+    "result": {
+        "id": 1,
+        "studentId": 3,
+        "courseId": 1,
+        "status": "ACTIVE",
+        "enrolledAt": "2024-01-15T13:00:00Z"
+    }
+}
 ```
 
-**Test 5c: Access course content sau khi enroll**
+#### **9.2 Admin/Lecturer Create Enrollment**
 ```http
-GET {{base_url}}/course/1
-Authorization: Bearer {{jwt_token}}  // JWT của STUDENT
+POST {{base_url}}/enrollment/createEnrollment
+Authorization: Bearer {{lecturer_token}}
+Content-Type: application/json
+
+{
+    "studentId": 4,
+    "courseId": 1,
+    "status": "ACTIVE"
+}
+```
+
+#### **9.3 Get My Enrollments (STUDENT only)**
+```http
+GET {{base_url}}/enrollment/my-enrollments
+Authorization: Bearer {{student_token}}
+```
+
+**Expected Response:**
+```json
+{
+    "code": 1000,
+    "result": [
+        {
+            "id": 1,
+            "studentId": 3,
+            "courseId": 1,
+            "status": "ACTIVE",
+            "enrolledAt": "2024-01-15T13:00:00Z"
+        }
+    ]
+}
+```
+
+#### **9.4 Get All Enrollments (ADMIN/LECTURER only)**
+```http
+GET {{base_url}}/enrollment
+Authorization: Bearer {{lecturer_token}}
+```
+
+#### **9.5 Get Enrollment By ID**
+```http
+GET {{base_url}}/enrollment/1
+Authorization: Bearer {{student_token}}
+```
+
+#### **9.6 Update Enrollment Status**
+```http
+PUT {{base_url}}/enrollment/1
+Authorization: Bearer {{lecturer_token}}
+Content-Type: application/json
+
+{
+    "studentId": 3,
+    "courseId": 1,
+    "status": "COMPLETED"
+}
+```
+
+#### **9.7 Delete Enrollment (ADMIN only)**
+```http
+DELETE {{base_url}}/enrollment/1
+Authorization: Bearer {{admin_token}}
 ```
 
 ---
 
-#### **Scenario 6: Quiz Flow (Luồng làm bài kiểm tra)**
+### 📊 **10. QUIZ RESULT CONTROLLER APIs**
 
-**Preparation Steps (Chuẩn bị):**
-1. Tạo course (LECTURER)
-2. Tạo lesson trong course
-3. Tạo quiz trong lesson
-4. Tạo questions cho quiz
-5. Tạo answer options cho questions
-6. Student enroll vào course
-
-**Test 6a: Tạo Quiz (LECTURER)**
-```http
-POST {{base_url}}/quiz
-Authorization: Bearer {{jwt_token}}  // JWT của LECTURER
-Content-Type: application/json
-
-{
-    "lessonId": 1,
-    "title": "Bài Kiểm Tra Java Cơ Bản",
-    "description": "Kiểm tra kiến thức Java cơ bản",
-    "timeLimit": 30,
-    "maxAttempts": 3,
-    "passScore": 70.0
-}
-```
-
-**Test 6b: Tạo Question**
-```http
-POST {{base_url}}/question
-Authorization: Bearer {{jwt_token}}  // JWT của LECTURER
-Content-Type: application/json
-
-{
-    "quizId": 1,
-    "questionText": "Java là ngôn ngữ lập trình gì?",
-    "questionType": "MULTIPLE_CHOICE",
-    "points": 10.0,
-    "orderIndex": 1
-}
-```
-
-**Test 6c: Tạo Answer Options**
-```http
-POST {{base_url}}/answerOption
-Authorization: Bearer {{jwt_token}}  // JWT của LECTURER
-Content-Type: application/json
-
-{
-    "questionId": 1,
-    "answerText": "Ngôn ngữ hướng đối tượng",
-    "isCorrect": true,
-    "orderIndex": 1
-}
-```
-
-**Test 6d: Lặp lại 6c cho các đáp án khác (isCorrect: false)**
-
-**Test 6e: Student làm bài Quiz**
+#### **10.1 Submit Quiz (STUDENT only)**
 ```http
 POST {{base_url}}/quiz-results/submit
-Authorization: Bearer {{jwt_token}}  // JWT của STUDENT đã enroll
+Authorization: Bearer {{student_token}}
 Content-Type: application/json
 
 {
     "quizId": 1,
     "answers": {
-        "1": "1"  // questionId: answerOptionId
+        "1": "1"
     },
     "timeTaken": 15
 }
 ```
 
-**Test 6f: Xem kết quả**
+**Expected Success Response:**
+```json
+{
+    "code": 1000,
+    "result": {
+        "id": 1,
+        "quizId": 1,
+        "quizTitle": "Kiểm Tra Spring Boot Cơ Bản",
+        "studentId": 3,
+        "studentName": "Nguyễn Văn A",
+        "score": 100.00,
+        "totalQuestions": 1,
+        "correctAnswers": 1,
+        "timeTaken": 15,
+        "attemptNumber": 1,
+        "isPassed": true,
+        "takenAt": "2024-01-15T14:00:00Z",
+        "feedback": "Câu 1: Đúng\n"
+    }
+}
+```
+
+#### **10.2 Get My Quiz Results (STUDENT only)**
 ```http
 GET {{base_url}}/quiz-results/my-results/1
-Authorization: Bearer {{jwt_token}}  // JWT của STUDENT
+Authorization: Bearer {{student_token}}
+```
+
+#### **10.3 Get My Best Result (STUDENT only)**
+```http
+GET {{base_url}}/quiz-results/my-best-result/1
+Authorization: Bearer {{student_token}}
+```
+
+#### **10.4 Get My Course Results (STUDENT only)**
+```http
+GET {{base_url}}/quiz-results/my-course-results/1
+Authorization: Bearer {{student_token}}
+```
+
+#### **10.5 Get All Quiz Results (ADMIN/LECTURER)**
+```http
+GET {{base_url}}/quiz-results/quiz/1/all-results
+Authorization: Bearer {{lecturer_token}}
+```
+
+#### **10.6 Check Can Take Quiz (STUDENT only)**
+```http
+GET {{base_url}}/quiz-results/can-take/1
+Authorization: Bearer {{student_token}}
+```
+
+**Expected Response:**
+```json
+{
+    "code": 1000,
+    "result": true
+}
 ```
 
 ---
