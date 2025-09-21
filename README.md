@@ -1226,20 +1226,13 @@ public class JwtTokenUtil {
 
 ---
 
-## 🧪 **Test Tất Cả APIs Theo Controller**
+🧪 Test Tất Cả APIs Theo Controller (Điều khiển)
 
----
-
-### 🏥 **1. HEALTH CONTROLLER APIs**
-
-#### **1.1 Health Check**
-```http
-GET {{base_url}}/health
-```
-
-**Expected Response:**
-```json
-{
+🏥 1. HEALTH CONTROLLER APIs (API Kiểm tra sức khỏe hệ thống)
+1.1 Health Check (Kiểm tra sức khỏe)
+httpGET {{base_url}}/health
+Expected Response (Phản hồi mong đợi):
+json{
     "code": 1000,
     "result": {
         "status": "UP",
@@ -1248,34 +1241,20 @@ GET {{base_url}}/health
         "version": "1.0.0"
     }
 }
-```
 
----
-
-### 🧪 **2. JWT TEST CONTROLLER APIs**
-
-#### **2.1 Test Simple (Public)**
-```http
-GET {{base_url}}/test/simple
-```
-
-**Expected Response:**
-```json
-{
+🧪 2. JWT TEST CONTROLLER APIs (API Test xác thực JWT)
+2.1 Test Simple - Public (Test đơn giản - công khai)
+httpGET {{base_url}}/test/simple
+Expected Response (Phản hồi mong đợi):
+json{
     "code": 1000,
     "result": "Server hoạt động OK - không cần token!"
 }
-```
-
-#### **2.2 Get Current User Info**
-```http
-GET {{base_url}}/test/me
+2.2 Get Current User Info (Lấy thông tin người dùng hiện tại)
+httpGET {{base_url}}/test/me
 Authorization: Bearer {{jwt_token}}
-```
-
-**Expected Response:**
-```json
-{
+Expected Response (Phản hồi mong đợi):
+json{
     "code": 1000,
     "result": {
         "userId": 1,
@@ -1289,34 +1268,20 @@ Authorization: Bearer {{jwt_token}}
         "isAdmin": false
     }
 }
-```
-
-#### **2.3 Get Current User ID**
-```http
-GET {{base_url}}/test/my-id
+2.3 Get Current User ID (Lấy ID người dùng hiện tại)
+httpGET {{base_url}}/test/my-id
 Authorization: Bearer {{jwt_token}}
-```
-
-**Expected Response:**
-```json
-{
+Expected Response (Phản hồi mong đợi):
+json{
     "code": 1000,
     "result": 1
 }
-```
 
----
-
-### 📂 **3. CATEGORY CONTROLLER APIs**
-
-#### **3.1 Browse All Categories (Public)**
-```http
-GET {{base_url}}/category
-```
-
-**Expected Response:**
-```json
-{
+📂 3. CATEGORY CONTROLLER APIs (API Quản lý danh mục)
+3.1 Browse All Categories - Public (Duyệt tất cả danh mục - công khai)
+httpGET {{base_url}}/category
+Expected Response (Phản hồi mong đợi):
+json{
     "code": 1000,
     "result": [
         {
@@ -1329,16 +1294,10 @@ GET {{base_url}}/category
         }
     ]
 }
-```
-
-#### **3.2 Get Category By ID (Public)**
-```http
-GET {{base_url}}/category/1
-```
-
-#### **3.3 Create Category (ADMIN/LECTURER only)**
-```http
-POST {{base_url}}/category/createCategory
+3.2 Get Category By ID - Public (Lấy danh mục theo ID - công khai)
+httpGET {{base_url}}/category/1
+3.3 Create Category (Tạo danh mục) - ADMIN/LECTURER only (chỉ ADMIN/LECTURER)
+httpPOST {{base_url}}/category/createCategory
 Authorization: Bearer {{lecturer_token}}
 Content-Type: application/json
 
@@ -1346,11 +1305,8 @@ Content-Type: application/json
     "name": "Thiết Kế Đồ Họa",
     "description": "Các khóa học về thiết kế và đồ họa"
 }
-```
-
-**Expected Success Response:**
-```json
-{
+Expected Success Response (Phản hồi thành công mong đợi):
+json{
     "code": 1000,
     "result": {
         "id": 2,
@@ -1361,11 +1317,8 @@ Content-Type: application/json
         "courses": []
     }
 }
-```
-
-#### **3.4 Update Category (ADMIN/LECTURER only)**
-```http
-PUT {{base_url}}/category/1
+3.4 Update Category (Cập nhật danh mục) - ADMIN/LECTURER only (chỉ ADMIN/LECTURER)
+httpPUT {{base_url}}/category/1
 Authorization: Bearer {{lecturer_token}}
 Content-Type: application/json
 
@@ -1373,34 +1326,20 @@ Content-Type: application/json
     "name": "Lập Trình Nâng Cao",
     "description": "Các khóa học lập trình từ cơ bản đến nâng cao"
 }
-```
-
-#### **3.5 Delete Category (ADMIN only)**
-```http
-DELETE {{base_url}}/category/1
+3.5 Delete Category (Xóa danh mục) - ADMIN only (chỉ ADMIN)
+httpDELETE {{base_url}}/category/1
 Authorization: Bearer {{admin_token}}
-```
-
-**Expected Response:**
-```json
-{
+Expected Response (Phản hồi mong đợi):
+json{
     "code": 1000,
     "result": "Category deleted successfully"
 }
-```
 
----
-
-### 📚 **4. COURSE CONTROLLER APIs**
-
-#### **4.1 Browse All Courses (Public)**
-```http
-GET {{base_url}}/course
-```
-
-**Expected Response:**
-```json
-{
+📚 4. COURSE CONTROLLER APIs (API Quản lý khóa học)
+4.1 Browse All Courses - Public (Duyệt tất cả khóa học - công khai)
+httpGET {{base_url}}/course
+Expected Response (Phản hồi mong đợi):
+json{
     "code": 1000,
     "result": [
         {
@@ -1422,21 +1361,15 @@ GET {{base_url}}/course
         }
     ]
 }
-```
-
-#### **4.2 Get Course By ID (Enrolled Students only)**
-```http
-GET {{base_url}}/course/1
+4.2 Get Course By ID (Lấy khóa học theo ID) - Enrolled Students only (chỉ sinh viên đã ghi danh)
+httpGET {{base_url}}/course/1
 Authorization: Bearer {{student_token}}
-```
-
-#### **4.3 Create Course with Image Upload (ADMIN/LECTURER)**
-```http
-POST {{base_url}}/course/createCourse
+4.3 Create Course with Image Upload (Tạo khóa học với tải ảnh lên) - ADMIN/LECTURER
+httpPOST {{base_url}}/course/createCourse
 Authorization: Bearer {{lecturer_token}}
 Content-Type: multipart/form-data
 
-Form Data:
+Form Data (Dữ liệu form):
 - course: {
     "title": "React.js Toàn Tập",
     "description": "Khóa học React.js từ cơ bản đến nâng cao với các project thực tế",
@@ -1447,16 +1380,14 @@ Form Data:
     "endTime": "2024-05-01T17:00:00Z"
   }
 - file: [Chọn file ảnh khóa học]
-```
+⚠️ Postman Setup (Thiết lập Postman):
 
-**⚠️ Postman Setup:**
-1. Chọn `Body` -> `form-data`
-2. Key `course`: Type `Text`, Value là JSON string
-3. Key `file`: Type `File`, browse và chọn ảnh
+Chọn Body -> form-data
+Key course: Type Text, Value là JSON string (chuỗi JSON)
+Key file: Type File, browse (duyệt) và chọn ảnh
 
-#### **4.4 Update Course (ADMIN/Course Owner)**
-```http
-PUT {{base_url}}/course/updateCourse/1
+4.4 Update Course (Cập nhật khóa học) - ADMIN/Course Owner (ADMIN/Chủ sở hữu khóa học)
+httpPUT {{base_url}}/course/updateCourse/1
 Authorization: Bearer {{lecturer_token}}
 Content-Type: application/json
 
@@ -1466,37 +1397,23 @@ Content-Type: application/json
     "price": 750000,
     "status": "OPEN"
 }
-```
-
-#### **4.5 Delete Course (ADMIN only)**
-```http
-DELETE {{base_url}}/course/1
+4.5 Delete Course (Xóa khóa học) - ADMIN only (chỉ ADMIN)
+httpDELETE {{base_url}}/course/1
 Authorization: Bearer {{admin_token}}
-```
 
----
-
-### 📖 **5. LESSON CONTROLLER APIs**
-
-#### **5.1 Get All Lessons (ADMIN/LECTURER only)**
-```http
-GET {{base_url}}/lesson
+📖 5. LESSON CONTROLLER APIs (API Quản lý bài học)
+5.1 Get All Lessons (Lấy tất cả bài học) - ADMIN/LECTURER only (chỉ ADMIN/LECTURER)
+httpGET {{base_url}}/lesson
 Authorization: Bearer {{lecturer_token}}
-```
-
-#### **5.2 Get Lesson By ID (Enrolled Students/LECTURER/ADMIN)**
-```http
-GET {{base_url}}/lesson/1
+5.2 Get Lesson By ID (Lấy bài học theo ID) - Enrolled Students/LECTURER/ADMIN (Sinh viên đã ghi danh/LECTURER/ADMIN)
+httpGET {{base_url}}/lesson/1
 Authorization: Bearer {{student_token}}
-```
-
-#### **5.3 Create Lesson with Video Upload**
-```http
-POST {{base_url}}/lesson/createLesson
+5.3 Create Lesson with Video Upload (Tạo bài học với tải video lên)
+httpPOST {{base_url}}/lesson/createLesson
 Authorization: Bearer {{lecturer_token}}
 Content-Type: multipart/form-data
 
-Form Data:
+Form Data (Dữ liệu form):
 - lesson: {
     "courseId": 1,
     "title": "Giới Thiệu về Spring Boot",
@@ -1505,12 +1422,9 @@ Form Data:
     "status": "OPEN",
     "duration": 45
   }
-- video: [Chọn file video bài học - tùy chọn]
-```
-
-**Expected Success Response:**
-```json
-{
+- video: [Chọn file video bài học - optional (tùy chọn)]
+Expected Success Response (Phản hồi thành công mong đợi):
+json{
     "code": 1000,
     "result": {
         "id": 1,
@@ -1525,11 +1439,8 @@ Form Data:
         "status": "OPEN"
     }
 }
-```
-
-#### **5.4 Update Lesson**
-```http
-PUT {{base_url}}/lesson/updateLesson/1
+5.4 Update Lesson (Cập nhật bài học)
+httpPUT {{base_url}}/lesson/updateLesson/1
 Authorization: Bearer {{lecturer_token}}
 Content-Type: application/json
 
@@ -1540,45 +1451,25 @@ Content-Type: application/json
     "status": "OPEN",
     "duration": 50
 }
-```
-
-#### **5.5 Delete Lesson (ADMIN only)**
-```http
-DELETE {{base_url}}/lesson/1
+5.5 Delete Lesson (Xóa bài học) - ADMIN only (chỉ ADMIN)
+httpDELETE {{base_url}}/lesson/1
 Authorization: Bearer {{admin_token}}
-```
 
----
-
-### 🎯 **6. QUIZ CONTROLLER APIs**
-
-#### **6.1 Get All Quizzes (ADMIN/LECTURER only)**
-```http
-GET {{base_url}}/quiz
+🎯 6. QUIZ CONTROLLER APIs (API Quản lý bài kiểm tra)
+6.1 Get All Quizzes (Lấy tất cả bài kiểm tra) - ADMIN/LECTURER only (chỉ ADMIN/LECTURER)
+httpGET {{base_url}}/quiz
 Authorization: Bearer {{lecturer_token}}
-```
-
-#### **6.2 Get Quiz By ID**
-```http
-GET {{base_url}}/quiz/1
+6.2 Get Quiz By ID (Lấy bài kiểm tra theo ID)
+httpGET {{base_url}}/quiz/1
 Authorization: Bearer {{student_token}}
-```
-
-#### **6.3 Get Quizzes By Lesson**
-```http
-GET {{base_url}}/quiz/lesson/1
+6.3 Get Quizzes By Lesson (Lấy bài kiểm tra theo bài học)
+httpGET {{base_url}}/quiz/lesson/1
 Authorization: Bearer {{student_token}}
-```
-
-#### **6.4 Get Quizzes By Course**
-```http
-GET {{base_url}}/quiz/course/1
+6.4 Get Quizzes By Course (Lấy bài kiểm tra theo khóa học)
+httpGET {{base_url}}/quiz/course/1
 Authorization: Bearer {{student_token}}
-```
-
-#### **6.5 Create Quiz (ADMIN/LECTURER)**
-```http
-POST {{base_url}}/quiz
+6.5 Create Quiz (Tạo bài kiểm tra) - ADMIN/LECTURER
+httpPOST {{base_url}}/quiz
 Authorization: Bearer {{lecturer_token}}
 Content-Type: application/json
 
@@ -1590,11 +1481,8 @@ Content-Type: application/json
     "maxAttempts": 3,
     "passScore": 70.0
 }
-```
-
-**Expected Response:**
-```json
-{
+Expected Response (Phản hồi mong đợi):
+json{
     "code": 1000,
     "result": {
         "id": 1,
@@ -1610,11 +1498,8 @@ Content-Type: application/json
         "quizResults": []
     }
 }
-```
-
-#### **6.6 Update Quiz**
-```http
-PUT {{base_url}}/quiz/1
+6.6 Update Quiz (Cập nhật bài kiểm tra)
+httpPUT {{base_url}}/quiz/1
 Authorization: Bearer {{lecturer_token}}
 Content-Type: application/json
 
@@ -1625,39 +1510,22 @@ Content-Type: application/json
     "maxAttempts": 2,
     "passScore": 75.0
 }
-```
-
-#### **6.7 Delete Quiz (ADMIN only)**
-```http
-DELETE {{base_url}}/quiz/1
+6.7 Delete Quiz (Xóa bài kiểm tra) - ADMIN only (chỉ ADMIN)
+httpDELETE {{base_url}}/quiz/1
 Authorization: Bearer {{admin_token}}
-```
 
----
-
-### ❓ **7. QUESTION CONTROLLER APIs**
-
-#### **7.1 Get All Questions (ADMIN/LECTURER only)**
-```http
-GET {{base_url}}/question
+❓ 7. QUESTION CONTROLLER APIs (API Quản lý câu hỏi)
+7.1 Get All Questions (Lấy tất cả câu hỏi) - ADMIN/LECTURER only (chỉ ADMIN/LECTURER)
+httpGET {{base_url}}/question
 Authorization: Bearer {{lecturer_token}}
-```
-
-#### **7.2 Get Question By ID**
-```http
-GET {{base_url}}/question/1
+7.2 Get Question By ID (Lấy câu hỏi theo ID)
+httpGET {{base_url}}/question/1
 Authorization: Bearer {{student_token}}
-```
-
-#### **7.3 Get Questions By Quiz**
-```http
-GET {{base_url}}/question/quiz/1
+7.3 Get Questions By Quiz (Lấy câu hỏi theo bài kiểm tra)
+httpGET {{base_url}}/question/quiz/1
 Authorization: Bearer {{student_token}}
-```
-
-#### **7.4 Create Question (ADMIN/LECTURER)**
-```http
-POST {{base_url}}/question
+7.4 Create Question (Tạo câu hỏi) - ADMIN/LECTURER
+httpPOST {{base_url}}/question
 Authorization: Bearer {{lecturer_token}}
 Content-Type: application/json
 
@@ -1668,11 +1536,8 @@ Content-Type: application/json
     "points": 10.0,
     "orderIndex": 1
 }
-```
-
-**Expected Response:**
-```json
-{
+Expected Response (Phản hồi mong đợi):
+json{
     "code": 1000,
     "result": {
         "id": 1,
@@ -1686,11 +1551,8 @@ Content-Type: application/json
         "answerOptions": []
     }
 }
-```
-
-#### **7.5 Update Question**
-```http
-PUT {{base_url}}/question/1
+7.5 Update Question (Cập nhật câu hỏi)
+httpPUT {{base_url}}/question/1
 Authorization: Bearer {{lecturer_token}}
 Content-Type: application/json
 
@@ -1700,39 +1562,22 @@ Content-Type: application/json
     "points": 15.0,
     "orderIndex": 1
 }
-```
-
-#### **7.6 Delete Question (ADMIN only)**
-```http
-DELETE {{base_url}}/question/1
+7.6 Delete Question (Xóa câu hỏi) - ADMIN only (chỉ ADMIN)
+httpDELETE {{base_url}}/question/1
 Authorization: Bearer {{admin_token}}
-```
 
----
-
-### 💡 **8. ANSWER OPTION CONTROLLER APIs**
-
-#### **8.1 Get All Answer Options (ADMIN/LECTURER only)**
-```http
-GET {{base_url}}/answerOption
+💡 8. ANSWER OPTION CONTROLLER APIs (API Quản lý đáp án)
+8.1 Get All Answer Options (Lấy tất cả đáp án) - ADMIN/LECTURER only (chỉ ADMIN/LECTURER)
+httpGET {{base_url}}/answerOption
 Authorization: Bearer {{lecturer_token}}
-```
-
-#### **8.2 Get Answer Option By ID**
-```http
-GET {{base_url}}/answerOption/1
+8.2 Get Answer Option By ID (Lấy đáp án theo ID)
+httpGET {{base_url}}/answerOption/1
 Authorization: Bearer {{student_token}}
-```
-
-#### **8.3 Get Answer Options By Question**
-```http
-GET {{base_url}}/answerOption/question/1
+8.3 Get Answer Options By Question (Lấy đáp án theo câu hỏi)
+httpGET {{base_url}}/answerOption/question/1
 Authorization: Bearer {{student_token}}
-```
-
-#### **8.4 Create Answer Option (ADMIN/LECTURER)**
-```http
-POST {{base_url}}/answerOption
+8.4 Create Answer Option (Tạo đáp án) - ADMIN/LECTURER
+httpPOST {{base_url}}/answerOption
 Authorization: Bearer {{lecturer_token}}
 Content-Type: application/json
 
@@ -1742,13 +1587,9 @@ Content-Type: application/json
     "isCorrect": true,
     "orderIndex": 1
 }
-```
-
-#### **8.5 Create Additional Answer Options**
-
-**Option B (Sai):**
-```http
-POST {{base_url}}/answerOption
+8.5 Create Additional Answer Options (Tạo thêm các đáp án khác)
+Option B (Đáp án B) - Sai:
+httpPOST {{base_url}}/answerOption
 Authorization: Bearer {{lecturer_token}}
 Content-Type: application/json
 
@@ -1758,11 +1599,8 @@ Content-Type: application/json
     "isCorrect": false,
     "orderIndex": 2
 }
-```
-
-**Option C (Sai):**
-```http
-POST {{base_url}}/answerOption
+Option C (Đáp án C) - Sai:
+httpPOST {{base_url}}/answerOption
 Authorization: Bearer {{lecturer_token}}
 Content-Type: application/json
 
@@ -1772,11 +1610,8 @@ Content-Type: application/json
     "isCorrect": false,
     "orderIndex": 3
 }
-```
-
-**Option D (Sai):**
-```http
-POST {{base_url}}/answerOption
+Option D (Đáp án D) - Sai:
+httpPOST {{base_url}}/answerOption
 Authorization: Bearer {{lecturer_token}}
 Content-Type: application/json
 
@@ -1786,11 +1621,8 @@ Content-Type: application/json
     "isCorrect": false,
     "orderIndex": 4
 }
-```
-
-#### **8.6 Update Answer Option**
-```http
-PUT {{base_url}}/answerOption/1
+8.6 Update Answer Option (Cập nhật đáp án)
+httpPUT {{base_url}}/answerOption/1
 Authorization: Bearer {{lecturer_token}}
 Content-Type: application/json
 
@@ -1799,32 +1631,21 @@ Content-Type: application/json
     "isCorrect": true,
     "orderIndex": 1
 }
-```
-
-#### **8.7 Delete Answer Option (ADMIN only)**
-```http
-DELETE {{base_url}}/answerOption/1
+8.7 Delete Answer Option (Xóa đáp án) - ADMIN only (chỉ ADMIN)
+httpDELETE {{base_url}}/answerOption/1
 Authorization: Bearer {{admin_token}}
-```
 
----
-
-### 📝 **9. ENROLLMENT CONTROLLER APIs**
-
-#### **9.1 Student Self-Enroll (STUDENT only)**
-```http
-POST {{base_url}}/enrollment/enroll
+📝 9. ENROLLMENT CONTROLLER APIs (API Quản lý ghi danh)
+9.1 Student Self-Enroll (Sinh viên tự ghi danh) - STUDENT only (chỉ STUDENT)
+httpPOST {{base_url}}/enrollment/enroll
 Authorization: Bearer {{student_token}}
 Content-Type: application/json
 
 {
     "courseId": 1
 }
-```
-
-**Expected Success Response:**
-```json
-{
+Expected Success Response (Phản hồi thành công mong đợi):
+json{
     "code": 1000,
     "result": {
         "id": 1,
@@ -1834,11 +1655,8 @@ Content-Type: application/json
         "enrolledAt": "2024-01-15T13:00:00Z"
     }
 }
-```
-
-#### **9.2 Admin/Lecturer Create Enrollment**
-```http
-POST {{base_url}}/enrollment/createEnrollment
+9.2 Admin/Lecturer Create Enrollment (Admin/Lecturer tạo ghi danh)
+httpPOST {{base_url}}/enrollment/createEnrollment
 Authorization: Bearer {{lecturer_token}}
 Content-Type: application/json
 
@@ -1847,17 +1665,11 @@ Content-Type: application/json
     "courseId": 1,
     "status": "ACTIVE"
 }
-```
-
-#### **9.3 Get My Enrollments (STUDENT only)**
-```http
-GET {{base_url}}/enrollment/my-enrollments
+9.3 Get My Enrollments (Lấy ghi danh của tôi) - STUDENT only (chỉ STUDENT)
+httpGET {{base_url}}/enrollment/my-enrollments
 Authorization: Bearer {{student_token}}
-```
-
-**Expected Response:**
-```json
-{
+Expected Response (Phản hồi mong đợi):
+json{
     "code": 1000,
     "result": [
         {
@@ -1869,23 +1681,14 @@ Authorization: Bearer {{student_token}}
         }
     ]
 }
-```
-
-#### **9.4 Get All Enrollments (ADMIN/LECTURER only)**
-```http
-GET {{base_url}}/enrollment
+9.4 Get All Enrollments (Lấy tất cả ghi danh) - ADMIN/LECTURER only (chỉ ADMIN/LECTURER)
+httpGET {{base_url}}/enrollment
 Authorization: Bearer {{lecturer_token}}
-```
-
-#### **9.5 Get Enrollment By ID**
-```http
-GET {{base_url}}/enrollment/1
+9.5 Get Enrollment By ID (Lấy ghi danh theo ID)
+httpGET {{base_url}}/enrollment/1
 Authorization: Bearer {{student_token}}
-```
-
-#### **9.6 Update Enrollment Status**
-```http
-PUT {{base_url}}/enrollment/1
+9.6 Update Enrollment Status (Cập nhật trạng thái ghi danh)
+httpPUT {{base_url}}/enrollment/1
 Authorization: Bearer {{lecturer_token}}
 Content-Type: application/json
 
@@ -1894,21 +1697,13 @@ Content-Type: application/json
     "courseId": 1,
     "status": "COMPLETED"
 }
-```
-
-#### **9.7 Delete Enrollment (ADMIN only)**
-```http
-DELETE {{base_url}}/enrollment/1
+9.7 Delete Enrollment (Xóa ghi danh) - ADMIN only (chỉ ADMIN)
+httpDELETE {{base_url}}/enrollment/1
 Authorization: Bearer {{admin_token}}
-```
 
----
-
-### 📊 **10. QUIZ RESULT CONTROLLER APIs**
-
-#### **10.1 Submit Quiz (STUDENT only)**
-```http
-POST {{base_url}}/quiz-results/submit
+📊 10. QUIZ RESULT CONTROLLER APIs (API Quản lý kết quả bài kiểm tra)
+10.1 Submit Quiz (Nộp bài kiểm tra) - STUDENT only (chỉ STUDENT)
+httpPOST {{base_url}}/quiz-results/submit
 Authorization: Bearer {{student_token}}
 Content-Type: application/json
 
@@ -1919,11 +1714,8 @@ Content-Type: application/json
     },
     "timeTaken": 15
 }
-```
-
-**Expected Success Response:**
-```json
-{
+Expected Success Response (Phản hồi thành công mong đợi):
+json{
     "code": 1000,
     "result": {
         "id": 1,
@@ -1941,43 +1733,30 @@ Content-Type: application/json
         "feedback": "Câu 1: Đúng\n"
     }
 }
-```
-
-#### **10.2 Get My Quiz Results (STUDENT only)**
-```http
-GET {{base_url}}/quiz-results/my-results/1
+10.2 Get My Quiz Results (Lấy kết quả bài kiểm tra của tôi) - STUDENT only (chỉ STUDENT)
+httpGET {{base_url}}/quiz-results/my-results/1
 Authorization: Bearer {{student_token}}
-```
-
-#### **10.3 Get My Best Result (STUDENT only)**
-```http
-GET {{base_url}}/quiz-results/my-best-result/1
+10.3 Get My Best Result (Lấy kết quả tốt nhất của tôi) - STUDENT only (chỉ STUDENT)
+httpGET {{base_url}}/quiz-results/my-best-result/1
 Authorization: Bearer {{student_token}}
-```
-
-#### **10.4 Get My Course Results (STUDENT only)**
-```http
-GET {{base_url}}/quiz-results/my-course-results/1
+10.4 Get My Course Results (Lấy kết quả khóa học của tôi) - STUDENT only (chỉ STUDENT)
+httpGET {{base_url}}/quiz-results/my-course-results/1
 Authorization: Bearer {{student_token}}
-```
-
-#### **10.5 Get All Quiz Results (ADMIN/LECTURER)**
-```http
-GET {{base_url}}/quiz-results/quiz/1/all-results
+10.5 Get All Quiz Results (Lấy tất cả kết quả bài kiểm tra) - ADMIN/LECTURER
+httpGET {{base_url}}/quiz-results/quiz/1/all-results
 Authorization: Bearer {{lecturer_token}}
-```
-
-#### **10.6 Check Can Take Quiz (STUDENT only)**
-```http
-GET {{base_url}}/quiz-results/can-take/1
+10.6 Check Can Take Quiz (Kiểm tra có thể làm bài không) - STUDENT only (chỉ STUDENT)
+httpGET {{base_url}}/quiz-results/can-take/1
 Authorization: Bearer {{student_token}}
-```
-
-**Expected Response:**
-```json
-{
+Expected Response (Phản hồi mong đợi):
+json{
     "code": 1000,
     "result": true
+}
+```2024-01-15T11:00:00Z",
+        "updatedAt": "2024-01-15T11:00:00Z",
+        "courses": []
+    }
 }
 ```
 
