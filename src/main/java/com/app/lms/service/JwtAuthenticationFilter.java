@@ -18,6 +18,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,17 +39,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
         try {
-            // Skip JWT processing cho public endpoints
-            String requestPath = request.getRequestURI();
-            if (isPublicEndpoint(requestPath)) {
+            // Chỉ xử lý JWT nếu có Authorization header
+            String authHeader = request.getHeader("Authorization");
+            if (!StringUtils.hasText(authHeader) || !authHeader.startsWith("Bearer ")) {
+                // Không có token -> để Spring Security quyết định (có thể là public endpoint)
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            // Extract token
+            // Extract và validate token
             String token = tokenExtractor.extractTokenFromRequest(request);
 
-            // Validate token
             if (jwtTokenUtil.validateToken(token)) {
                 // Get user info from token
                 UserTokenInfo userInfo = jwtTokenUtil.getUserInfoFromToken(token);
@@ -72,10 +73,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 log.debug("JWT Authentication successful for user: {} (ID: {}) with roles: {}",
                         userInfo.getEmail(), userInfo.getUserId(), authorities);
+            } else {
+                log.warn("Invalid JWT token for request: {}", request.getRequestURI());
+                // Token invalid -> để Spring Security handle (sẽ return 401 nếu endpoint cần auth)
             }
 
         } catch (AppException e) {
             log.warn("JWT Authentication failed: {}", e.getMessage());
+            // Không throw exception, để Spring Security quyết định response
         } catch (Exception e) {
             log.error("Unexpected error in JWT filter: {}", e.getMessage());
         }
@@ -104,13 +109,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         return authorities;
-    }
-
-    private boolean isPublicEndpoint(String requestPath) {
-        return requestPath.startsWith("/api/test/") ||
-                requestPath.equals("/api/category") ||
-                requestPath.equals("/api/course") ||
-                requestPath.startsWith("/api/health") ||
-                requestPath.startsWith("/uploads/");
     }
 }

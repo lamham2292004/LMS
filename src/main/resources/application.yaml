@@ -20,6 +20,18 @@ spring:
       enabled: true
       max-file-size: 200MB
       max-request-size: 200MB
+# CORS Configuration
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000,https://localhost:3000}
+
+# Logging
+logging:
+  level:
+    com.app.lms: INFO
+    org.springframework.security: WARN
+    org.hibernate: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 app:
   jwt:
     secret: 2nIXqNA3pjyrUvlwxmd8+lbTa/0OWCDgBUg+FXp9Oc5orQmXKmVDXeXWt442G0vX
