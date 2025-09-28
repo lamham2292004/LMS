@@ -4,6 +4,7 @@ import com.app.lms.dto.auth.UserTokenInfo;
 import com.app.lms.enums.UserType;
 import com.app.lms.exception.AppException;
 import com.app.lms.exception.ErroCode;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -142,16 +143,16 @@ public class JwtTokenUtil {
 
             return UserTokenInfo.builder()
                     .userId(getUserIdFromToken(token))
-                    .accountId(extractLongFromClaims(claims, "accountId"))
+                    .accountId(extractLongFromClaims(claims, "account_id"))
                     .username((String) claims.get("username"))
                     .email((String) claims.get("email"))
                     .fullName((String) claims.get("full_name")) // Identity Service uses "full_name"
                     .userType(getUserTypeFromToken(token))
                     .studentCode((String) claims.get("studentCode"))
                     .lecturerCode((String) claims.get("lecturerCode"))
-                    .classId(extractLongFromClaims(claims, "classId"))
-                    .departmentId(extractLongFromClaims(claims, "departmentId"))
-                    .isAdmin(extractBooleanFromClaims(claims, "isAdmin"))
+                    .classId(extractLongFromClaims(claims, "class_id"))
+                    .departmentId(extractLongFromClaims(claims, "department_id"))
+                    .isAdmin(extractBooleanFromClaims(claims, "is_admin"))
                     .build();
         } catch (AppException e) {
             throw e;

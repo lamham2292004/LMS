@@ -12,22 +12,26 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
-    @Value("${cors.allowed-origins:http://localhost:3000,http://127.0.0.1:3000}")
+    @Value("${cors.allowed-origins:http://localhost:3000,http://127.0.0.1:3000,https://localhost:3000}")
     private String allowedOrigins;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
+        // ✅ Cấu hình Origins cho Next.js
         List<String> origins = Arrays.asList(allowedOrigins.split(","));
         configuration.setAllowedOriginPatterns(origins);
 
-        // HTTP methods mà Next.js thường sử dụng
+        // ⚠️ QUAN TRỌNG: Cho phép credentials (cần cho JWT cookies)
+        configuration.setAllowCredentials(true);
+
+        // ✅ HTTP methods cho Next.js API calls
         configuration.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"
         ));
 
-        // Headers mà Next.js và modern browsers gửi
+        // ✅ Headers Next.js cần
         configuration.setAllowedHeaders(Arrays.asList(
                 "Authorization",
                 "Content-Type",
@@ -41,23 +45,21 @@ public class CorsConfig {
                 "Cache-Control"
         ));
 
-        // Headers mà frontend có thể đọc từ response
+        // ✅ Headers FE có thể đọc
         configuration.setExposedHeaders(Arrays.asList(
                 "Access-Control-Allow-Origin",
                 "Access-Control-Allow-Credentials",
                 "Authorization",
-                "Content-Disposition"
+                "Content-Disposition",
+                "X-Total-Count" // Thêm cho pagination
         ));
 
-        // Cho phép cookies và credentials (cần cho JWT trong cookies)
-        configuration.setAllowCredentials(true);
-
-        // Thời gian cache preflight request (giảm số lượng OPTIONS requests)
+        // ✅ Tăng thời gian cache preflight
         configuration.setMaxAge(3600L);
 
-        // Apply CORS cho tất cả endpoints
+        // Apply CORS cho tất cả LMS endpoints
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/api/**", configuration);
 
         return source;
     }

@@ -23,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class LessonController {
-    LessonService lessonService;
+    final LessonService lessonService;
 
     @PostMapping(value = "/createLesson", consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ADMIN') or " +

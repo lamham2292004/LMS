@@ -26,7 +26,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
 public class QuizResultController {
-    QuizResultService quizResultService;
+    final QuizResultService quizResultService;
 
     @PostMapping("/submit")
     @PreAuthorize("hasRole('STUDENT')")
