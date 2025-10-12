@@ -19,7 +19,7 @@ public class HealthController {
         health.put("status", "UP");
         health.put("timestamp", OffsetDateTime.now());
         health.put("service", "LMS API");
-        health.put("version", "1.0.0");
+        health.put("version", "1.2");
 
         ApiResponse<Map<String, Object>> response = new ApiResponse<>();
         response.setResult(health);

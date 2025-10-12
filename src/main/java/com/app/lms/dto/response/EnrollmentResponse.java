@@ -20,4 +20,6 @@ public class EnrollmentResponse {
     Long courseId;
     EnrollmentStatus status;
     OffsetDateTime enrolledAt;
+    String courseName;
+    String courseImg;
 }

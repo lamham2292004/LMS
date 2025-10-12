@@ -1,11 +1,12 @@
 package com.app.lms.dto.request.courseRequest;
 
-import com.app.lms.enums.CourseStatus;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
-
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+
+import com.app.lms.enums.CourseStatus;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Data
 @Builder
@@ -19,4 +20,5 @@ public class CourseUpdateRequest {
     CourseStatus status;   // upcoming | open | closed
     OffsetDateTime startTime;
     OffsetDateTime endTime;
+    Long categoryId;  // Fix: camelCase để Lombok tạo getCategoryId()
 }

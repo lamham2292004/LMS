@@ -1,5 +1,11 @@
 package com.app.lms.controller;
 
+import java.util.List;
+
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
 import com.app.lms.annotation.CurrentUser;
 import com.app.lms.annotation.CurrentUserId;
 import com.app.lms.dto.auth.UserTokenInfo;
@@ -11,16 +17,12 @@ import com.app.lms.enums.UserType;
 import com.app.lms.exception.AppException;
 import com.app.lms.exception.ErroCode;
 import com.app.lms.service.EnrollmentService;
+
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PostAuthorize;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/enrollment")
@@ -83,6 +85,25 @@ public class EnrollmentController {
 
         ApiResponse<List<EnrollmentResponse>> response = new ApiResponse<>();
         response.setResult(enrollmentService.getEnrollmentsByStudentId(currentUserId));
+        return response;
+    }
+
+    // Check if student is enrolled in a specific course
+    @GetMapping("/check/{courseId}")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ApiResponse<Boolean> checkEnrollment(
+            @PathVariable Long courseId,
+            @CurrentUserId Long currentUserId,
+            @CurrentUser UserTokenInfo currentUser) {
+
+        if (currentUser.getUserType() != UserType.STUDENT) {
+            throw new AppException(ErroCode.STUDENT_ONLY);
+        }
+
+        boolean isEnrolled = enrollmentService.isStudentEnrolledInCourse(currentUserId, courseId);
+
+        ApiResponse<Boolean> response = new ApiResponse<>();
+        response.setResult(isEnrolled);
         return response;
     }
 

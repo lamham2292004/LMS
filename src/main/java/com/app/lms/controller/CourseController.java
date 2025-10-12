@@ -1,5 +1,12 @@
 package com.app.lms.controller;
 
+import java.util.List;
+
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.app.lms.annotation.CurrentUser;
 import com.app.lms.dto.auth.UserTokenInfo;
 import com.app.lms.dto.request.ApiResponse;
@@ -7,16 +14,11 @@ import com.app.lms.dto.request.courseRequest.CourseCreateRequest;
 import com.app.lms.dto.request.courseRequest.CourseUpdateRequest;
 import com.app.lms.dto.response.CourseResponse;
 import com.app.lms.service.CourseService;
+
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.access.prepost.PostAuthorize;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/course")
@@ -68,7 +70,20 @@ public class CourseController {
             @Valid @RequestBody CourseUpdateRequest request) {
         // Lecturer chỉ edit course của mình, Admin edit tất cả
         ApiResponse<CourseResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(courseService.updateCourse(courseId, request));
+        apiResponse.setResult(courseService.updateCourse(courseId, request, null));
+        return apiResponse;
+    }
+
+    @PutMapping(value = "/updateCourse/{courseId}/with-file", consumes = {"multipart/form-data"})
+    @PreAuthorize("hasRole('ADMIN') or " +
+            "(hasRole('LECTURER') and @authorizationService.isLecturerOwnsCourse(#courseId, authentication.name))")
+    public ApiResponse<CourseResponse> updateCourseWithFile(
+            @PathVariable Long courseId,
+            @Valid @RequestPart("course") CourseUpdateRequest request,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+        // Update course với file mới (nếu có)
+        ApiResponse<CourseResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(courseService.updateCourse(courseId, request, file));
         return apiResponse;
     }
 

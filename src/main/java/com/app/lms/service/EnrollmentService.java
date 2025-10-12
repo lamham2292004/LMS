@@ -1,5 +1,10 @@
 package com.app.lms.service;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.app.lms.dto.request.enrollmentRequest.EnrollmentCreateRequest;
 import com.app.lms.dto.request.enrollmentRequest.EnrollmentUpdateRequest;
 import com.app.lms.dto.response.EnrollmentResponse;
@@ -11,14 +16,11 @@ import com.app.lms.exception.ErroCode;
 import com.app.lms.mapper.EnrollmentMapper;
 import com.app.lms.repository.CourseRepository;
 import com.app.lms.repository.EnrollmentRepository;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -45,7 +47,7 @@ public class EnrollmentService {
                     );
 
             if (alreadyEnrolled) {
-                throw new AppException(ErroCode.TITLE_EXISTED); // TODO: Tạo ALREADY_ENROLLED error code
+                throw new AppException(ErroCode.ALREADY_ENROLLED);
             }
         }
 
