@@ -1,11 +1,14 @@
 package com.app.lms.entity;
 
+import java.time.OffsetDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+
 import com.app.lms.enums.EnrollmentStatus;
+
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.hibernate.annotations.CreationTimestamp;
-import java.time.OffsetDateTime;
 
 @Entity
 @Data
@@ -22,6 +25,12 @@ public class Enrollment {
 
     @Column(name = "student_id", nullable = false)
     Long studentId; // ID học viên từ Identity Service
+
+    @Column(name = "student_full_name")
+    String studentName;
+
+    @Column(name = "student_email")
+    String studentEmail;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id", nullable = false, insertable = false, updatable = false)

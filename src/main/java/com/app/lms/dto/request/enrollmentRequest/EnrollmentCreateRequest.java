@@ -12,6 +12,8 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 public class EnrollmentCreateRequest {
     Long studentId;
+    String studentName;
+    String studentEmail;
     @NotNull(message = "COURSE_INVALID")
     Long courseId;
     EnrollmentStatus status;

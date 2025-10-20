@@ -1,5 +1,11 @@
 package com.app.lms.service;
 
+import java.io.IOException;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.app.lms.dto.request.lessonRequest.LessonCreateRequest;
 import com.app.lms.dto.request.lessonRequest.LessonUpdateRequest;
 import com.app.lms.dto.response.LessonResponse;
@@ -10,14 +16,10 @@ import com.app.lms.exception.ErroCode;
 import com.app.lms.mapper.LessonMapper;
 import com.app.lms.repository.CourseRepository;
 import com.app.lms.repository.LessonRepository;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -66,12 +68,23 @@ public class LessonService {
                 .orElseThrow(()-> new AppException(ErroCode.LESSON_NO_EXISTED)));
     }
 
-    public LessonResponse updateLesson(Long lessonId, LessonUpdateRequest request) {
+    public LessonResponse updateLesson(Long lessonId, LessonUpdateRequest request, MultipartFile videoFile) {
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(()-> new AppException(ErroCode.LESSON_NO_EXISTED));
         lessonMapper.updateLesson(lesson,request);
+        // Update video if provided
+        if (videoFile != null && !videoFile.isEmpty()) {
+            try {
+                String videoPath = fileUploadService.saveLessonVideo(videoFile);
+                lesson.setVideoPath(videoPath);
+            } catch (IOException e) {
+                throw new AppException(ErroCode.FILE_ERRO);
+            }
+        }
+
         return lessonMapper.toLessonResponse(lessonRepository.save(lesson));
     }
+
 
     public void deleteLesson(Long lessonId) {
         if (!lessonRepository.existsById(lessonId)) {

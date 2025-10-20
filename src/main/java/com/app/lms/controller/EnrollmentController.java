@@ -46,6 +46,8 @@ public class EnrollmentController {
 
         // Set studentId từ token, không trust client
         request.setStudentId(currentUser.getUserId());
+        request.setStudentName(currentUser.getFullName());
+        request.setStudentEmail(currentUser.getEmail());
 
         log.info("Student {} ({}) is enrolling in course {}",
                 currentUser.getFullName(), currentUser.getUsername(), request.getCourseId());

@@ -1,5 +1,12 @@
 package com.app.lms.controller;
 
+import java.util.List;
+
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.app.lms.annotation.CurrentUser;
 import com.app.lms.dto.auth.UserTokenInfo;
 import com.app.lms.dto.request.ApiResponse;
@@ -7,16 +14,11 @@ import com.app.lms.dto.request.lessonRequest.LessonCreateRequest;
 import com.app.lms.dto.request.lessonRequest.LessonUpdateRequest;
 import com.app.lms.dto.response.LessonResponse;
 import com.app.lms.service.LessonService;
+
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.access.prepost.PostAuthorize;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/lesson")
@@ -57,15 +59,15 @@ public class LessonController {
         return apiResponse;
     }
 
-    @PutMapping("/updateLesson/{lessonId}")
-    @PreAuthorize("hasRole('ADMIN') or " +
-            "(hasRole('LECTURER') and @authorizationService.canLecturerEditLesson(#lessonId, authentication.name))")
+    @PutMapping(value = "/updateLesson/{lessonId}", consumes = {"multipart/form-data"})
+    @PreAuthorize("hasRole('ADMIN') or " + "(hasRole('LECTURER') and @authorizationService.canLecturerEditLesson(#lessonId, authentication.name))")
     public ApiResponse<LessonResponse> updateLesson(
             @PathVariable Long lessonId,
-            @Valid @RequestBody LessonUpdateRequest request) {
-
+            @RequestPart("lesson") @Valid LessonUpdateRequest request,
+            @RequestPart(value = "video", required = false) MultipartFile video) {
+        // Video là optional - nếu không có video thì chỉ update thông tin
         ApiResponse<LessonResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(lessonService.updateLesson(lessonId, request));
+        apiResponse.setResult(lessonService.updateLesson(lessonId, request, video));
         return apiResponse;
     }
 

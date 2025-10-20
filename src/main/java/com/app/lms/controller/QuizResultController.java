@@ -1,5 +1,10 @@
 package com.app.lms.controller;
 
+import java.util.List;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
 import com.app.lms.annotation.CurrentUser;
 import com.app.lms.annotation.CurrentUserId;
 import com.app.lms.dto.auth.UserTokenInfo;
@@ -10,15 +15,11 @@ import com.app.lms.enums.UserType;
 import com.app.lms.exception.AppException;
 import com.app.lms.exception.ErroCode;
 import com.app.lms.service.QuizResultService;
-import jakarta.validation.Valid;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/quiz-results")
@@ -98,13 +99,15 @@ public class QuizResultController {
     }
 
     @GetMapping("/quiz/{quizId}/all-results")
-    @PreAuthorize("hasRole('ADMIN') or "+"(hasRole('LECTURER' and @authorizationService.canLecturerEditQuiz(#quizId,authentication.name)))")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('LECTURER') and @authorizationService.canLecturerEditQuiz(#quizId,authentication.name))")
     public ApiResponse<List<QuizResultResponse>> getAllQuizResults(
             @PathVariable Long quizId,
             @CurrentUser UserTokenInfo currentUser) {
 
-        if (currentUser.getUserType() != UserType.LECTURER &&
-                (currentUser.getIsAdmin() == null || !currentUser.getIsAdmin())) {
+        // Allow both ADMIN and LECTURER to view quiz results
+        if (currentUser.getUserType() != UserType.LECTURER && 
+            currentUser.getUserType() != UserType.ADMIN &&
+            (currentUser.getIsAdmin() == null || !currentUser.getIsAdmin())) {
             throw new AppException(ErroCode.LECTURER_ONLY);
         }
 

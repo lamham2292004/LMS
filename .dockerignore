@@ -1,0 +1,40 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# IDE files
+.idea
+.vscode
+*.iml
+*.ipr
+*.iws
+
+# Build output (will be rebuilt in Docker)
+target/
+!target/*.jar
+
+# Maven wrapper jar (already copied separately)
+.mvn/wrapper/maven-wrapper.jar
+
+# Documentation
+*.md
+HELP.md
+
+# Uploads (will be created in container)
+uploads/
+
+# Course Management (if it's a separate module)
+Course-Management/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+

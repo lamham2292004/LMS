@@ -17,6 +17,8 @@ import java.time.OffsetDateTime;
 public class EnrollmentResponse {
     Long id;
     Long studentId;
+    String studentName;
+    String studentEmail;
     Long courseId;
     EnrollmentStatus status;
     OffsetDateTime enrolledAt;

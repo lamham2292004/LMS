@@ -1,0 +1,77 @@
+version: "3.8"
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: lms-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: LMS
+      MYSQL_ROOT_PASSWORD: abc123-
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - lms-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Spring Boot Application
+  lms-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lms-app
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    environment:
+      # Server Configuration
+      SERVER_PORT: 8083
+
+      # Database Configuration
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/LMS?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: abc123-
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+
+      # JPA/Hibernate Configuration
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
+
+      # Jackson Configuration
+      SPRING_JACKSON_TIME_ZONE: Asia/Ho_Chi_Minh
+
+      # Application Configuration
+      SPRING_PROFILES_ACTIVE: prod
+
+      # File Upload Configuration
+      SPRING_SERVLET_MULTIPART_ENABLED: "true"
+      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 200MB
+      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 200MB
+
+      # JWT Configuration
+      APP_JWT_SECRET: 2nIXqNA3pjyrUvlwxmd8+lbTa/0OWCDgBUg+FXp9Oc5orQmXKmVDXeXWt442G0vX
+
+      # CORS Configuration
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://127.0.0.1:3000,https://localhost:3000
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - lms-network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  lms-network:
+    driver: bridge

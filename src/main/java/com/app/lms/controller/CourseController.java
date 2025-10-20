@@ -62,26 +62,15 @@ public class CourseController {
         return apiResponse;
     }
 
-    @PutMapping("/updateCourse/{courseId}")
+    @PutMapping(value = "/updateCourse/{courseId}", consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ADMIN') or " +
             "(hasRole('LECTURER') and @authorizationService.isLecturerOwnsCourse(#courseId, authentication.name))")
     public ApiResponse<CourseResponse> updateCourse(
             @PathVariable Long courseId,
-            @Valid @RequestBody CourseUpdateRequest request) {
-        // Lecturer chỉ edit course của mình, Admin edit tất cả
-        ApiResponse<CourseResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(courseService.updateCourse(courseId, request, null));
-        return apiResponse;
-    }
-
-    @PutMapping(value = "/updateCourse/{courseId}/with-file", consumes = {"multipart/form-data"})
-    @PreAuthorize("hasRole('ADMIN') or " +
-            "(hasRole('LECTURER') and @authorizationService.isLecturerOwnsCourse(#courseId, authentication.name))")
-    public ApiResponse<CourseResponse> updateCourseWithFile(
-            @PathVariable Long courseId,
             @Valid @RequestPart("course") CourseUpdateRequest request,
             @RequestPart(value = "file", required = false) MultipartFile file) {
-        // Update course với file mới (nếu có)
+        // Lecturer chỉ edit course của mình, Admin edit tất cả
+        // File là optional - nếu không có file thì chỉ update thông tin
         ApiResponse<CourseResponse> apiResponse = new ApiResponse<>();
         apiResponse.setResult(courseService.updateCourse(courseId, request, file));
         return apiResponse;

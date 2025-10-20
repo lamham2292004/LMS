@@ -1,5 +1,12 @@
 package com.app.lms.resolver;
 
+import org.springframework.core.MethodParameter;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
+
 import com.app.lms.annotation.CurrentUser;
 import com.app.lms.annotation.CurrentUserId;
 import com.app.lms.dto.auth.UserTokenInfo;
@@ -7,15 +14,10 @@ import com.app.lms.exception.AppException;
 import com.app.lms.exception.ErroCode;
 import com.app.lms.service.TokenExtractor;
 import com.app.lms.until.JwtTokenUtil;
+
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.MethodParameter;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.support.WebDataBinderFactory;
-import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.method.support.ModelAndViewContainer;
 
 @Component
 @RequiredArgsConstructor
@@ -43,7 +45,7 @@ public class CurrentUserResolver implements HandlerMethodArgumentResolver {
             String token = tokenExtractor.extractTokenFromRequest(request);
 
             // 2. Debug token (remove in production)
-            // jwtTokenUtil.debugToken(token);
+            jwtTokenUtil.debugToken(token);
 
             // 3. Validate token
             if (!jwtTokenUtil.validateToken(token)) {
