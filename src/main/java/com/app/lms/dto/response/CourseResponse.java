@@ -1,5 +1,6 @@
 package com.app.lms.dto.response;
 
+import com.app.lms.enums.ApprovalStatus;
 import com.app.lms.enums.CourseStatus;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -21,6 +22,13 @@ public class CourseResponse {
     BigDecimal price = BigDecimal.ZERO;
     Long teacherId;
     CourseStatus status;
+
+    // THÔNG TIN PHÊ DUYỆT
+    ApprovalStatus approvalStatus;
+    Long approvedBy;
+    OffsetDateTime approvedAt;
+    String rejectionReason;
+
     OffsetDateTime startTime;
     OffsetDateTime endTime;
     OffsetDateTime createdAt;

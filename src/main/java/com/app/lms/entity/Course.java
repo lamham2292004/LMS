@@ -1,6 +1,7 @@
 package com.app.lms.entity;
 
 
+import com.app.lms.enums.ApprovalStatus;
 import com.app.lms.enums.CourseStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -40,6 +41,24 @@ public class Course {
     @Enumerated(EnumType.STRING)
     @Builder.Default
     CourseStatus status = CourseStatus.UPCOMING; // upcoming | open | closed
+
+    // THÊM TRẠNG THÁI PHÊ DUYỆT
+    @Column(name = "approval_status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
+
+    // THÊM NGƯỜI PHÊ DUYỆT
+    @Column(name = "approved_by")
+    Long approvedBy;
+
+    // THỜI GIAN PHÊ DUYỆT
+    @Column(name = "approved_at")
+    OffsetDateTime approvedAt;
+
+    //  GHI CHÚ TỪ CHỐI (NẾU CÓ)
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    String rejectionReason;
 
     @Column(name = "start_time")
     OffsetDateTime startTime; // Thời gian bắt đầu khóa học

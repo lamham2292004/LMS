@@ -51,7 +51,13 @@ public enum ErroCode {
     USER_NOT_FOUND(3001, "Người dùng không tồn tại"),
     USER_NOT_ACTIVE(3002, "Tài khoản đã bị khóa"),
     STUDENT_NOT_FOUND(3003, "Học viên không tồn tại"),
-    LECTURER_NOT_FOUND(3004, "Giảng viên không tồn tại");
+    LECTURER_NOT_FOUND(3004, "Giảng viên không tồn tại"),
+
+    // Course approval errors (1025-1035)
+    COURSE_NOT_PENDING(1025, "Khóa học không ở trạng thái chờ phê duyệt"),
+    COURSE_ALREADY_APPROVED(1026, "Khóa học đã được phê duyệt"),
+    COURSE_NOT_APPROVED(1027, "Khóa học chưa được phê duyệt"),
+    REJECTION_REASON_REQUIRED(1028, "Vui lòng nhập lý do từ chối");
 
     private int code;
     private String message;
