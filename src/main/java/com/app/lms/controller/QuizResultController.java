@@ -98,6 +98,37 @@ public class QuizResultController {
         return response;
     }
 
+    @GetMapping("/my-all-results")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ApiResponse<List<QuizResultResponse>> getMyAllResults(
+            @CurrentUserId Long currentUserId,
+            @CurrentUser UserTokenInfo currentUser) {
+
+        log.info("Student {} requesting all quiz results", currentUserId);
+
+        if (currentUser.getUserType() != UserType.STUDENT) {
+            throw new AppException(ErroCode.STUDENT_ONLY);
+        }
+
+        ApiResponse<List<QuizResultResponse>> response = new ApiResponse<>();
+        response.setResult(quizResultService.getAllStudentResults(currentUserId));
+        return response;
+    }
+
+    @GetMapping("/detail/{resultId}")
+    @PreAuthorize("hasRole('STUDENT') or hasRole('LECTURER') or hasRole('ADMIN')")
+    public ApiResponse<QuizResultResponse> getQuizResultDetail(
+            @PathVariable Long resultId,
+            @CurrentUserId Long currentUserId,
+            @CurrentUser UserTokenInfo currentUser) {
+
+        log.info("User {} requesting quiz result detail {}", currentUserId, resultId);
+
+        ApiResponse<QuizResultResponse> response = new ApiResponse<>();
+        response.setResult(quizResultService.getQuizResultDetail(resultId, currentUserId, currentUser));
+        return response;
+    }
+
     @GetMapping("/quiz/{quizId}/all-results")
     @PreAuthorize("hasRole('ADMIN') or (hasRole('LECTURER') and @authorizationService.canLecturerEditQuiz(#quizId,authentication.name))")
     public ApiResponse<List<QuizResultResponse>> getAllQuizResults(

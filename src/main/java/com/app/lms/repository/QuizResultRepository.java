@@ -1,12 +1,13 @@
 package com.app.lms.repository;
 
-import com.app.lms.entity.QuizResult;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
-import java.util.Optional;
+import com.app.lms.entity.QuizResult;
 
 public interface QuizResultRepository extends JpaRepository <QuizResult, Long> {
     List<QuizResult> findByQuizIdAndStudentIdOrderByAttemptNumberDesc(Long quizId, Long studentId);
@@ -21,4 +22,7 @@ public interface QuizResultRepository extends JpaRepository <QuizResult, Long> {
     List<QuizResult> findByStudentIdAndCourseId(@Param("studentId") Long studentId, @Param("courseId") Long courseId);
 
     List<QuizResult> findByQuizIdOrderByScoreDesc(Long quizId);
+    
+    // Get all quiz results for a student across all courses
+    List<QuizResult> findByStudentIdOrderByTakenAtDesc(Long studentId);
 }

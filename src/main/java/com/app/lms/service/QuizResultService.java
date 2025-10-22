@@ -1,26 +1,33 @@
 package com.app.lms.service;
 
-import com.app.lms.dto.request.quizResultRequest.SubmitQuizRequest;
-import com.app.lms.dto.response.QuizResultResponse;
-import com.app.lms.entity.*;
-import com.app.lms.enums.EnrollmentStatus;
-import com.app.lms.enums.QuestionType;
-import com.app.lms.exception.AppException;
-import com.app.lms.exception.ErroCode;
-import com.app.lms.mapper.QuizResultMapper;
-import com.app.lms.repository.*;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import com.app.lms.entity.AnswerOption;
+import com.app.lms.entity.Question;
+import com.app.lms.entity.Quiz;
+import com.app.lms.entity.QuizResult;
+import com.app.lms.repository.EnrollmentRepository;
+import com.app.lms.repository.QuizRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.app.lms.dto.request.quizResultRequest.SubmitQuizRequest;
+import com.app.lms.dto.response.QuizResultResponse;
+import com.app.lms.enums.EnrollmentStatus;
+import com.app.lms.enums.QuestionType;
+import com.app.lms.exception.AppException;
+import com.app.lms.exception.ErroCode;
+import com.app.lms.mapper.QuizResultMapper;
+import com.app.lms.repository.QuizResultRepository;
+
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -124,6 +131,40 @@ public class QuizResultService {
         return results.stream()
                 .map(result -> quizResultMapper.toQuizResultResponse(result, quiz))
                 .toList();
+    }
+
+    public List<QuizResultResponse> getAllStudentResults(Long studentId) {
+        log.info("Getting all quiz results for student {}", studentId);
+        
+        List<QuizResult> results = quizResultRepository
+                .findByStudentIdOrderByTakenAtDesc(studentId);
+
+        log.info("Found {} quiz results for student {}", results.size(), studentId);
+
+        return results.stream()
+                .map(result -> quizResultMapper.toQuizResultResponse(result, result.getQuiz()))
+                .toList();
+    }
+
+    public QuizResultResponse getQuizResultDetail(Long resultId, Long currentUserId, com.app.lms.dto.auth.UserTokenInfo currentUser) {
+        log.info("Getting quiz result detail {} for user {}", resultId, currentUserId);
+        
+        QuizResult result = quizResultRepository.findById(resultId)
+                .orElseThrow(() -> new AppException(ErroCode.QUIZ_RESULT_NOT_FOUND));
+
+        // Security check: Students can only view their own results
+        if (currentUser.getUserType() == com.app.lms.enums.UserType.STUDENT 
+            && !result.getStudentId().equals(currentUserId)) {
+            throw new AppException(ErroCode.ACCESS_DENIED);
+        }
+
+        Quiz quiz = result.getQuiz();
+        if (quiz == null) {
+            quiz = quizRepository.findById(result.getQuizId())
+                    .orElseThrow(() -> new AppException(ErroCode.QUIZ_NO_EXISTED));
+        }
+
+        return quizResultMapper.toQuizResultResponse(result, quiz);
     }
 
     public boolean canTakeQuiz(Long quizId, Long studentId) {

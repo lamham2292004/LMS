@@ -46,6 +46,7 @@ public enum ErroCode {
     QUIZ_ANSWERS_REQUIRED(1019, "Phải trả lời ít nhất 1 câu hỏi"),
     QUIZ_INVALID_ANSWER(1020, "Đáp án không hợp lệ"),
     QUIZ_PERMISSION_DENIED(1021, "Không có quyền làm bài kiểm tra này"),
+    QUIZ_RESULT_NOT_FOUND(1022, "Kết quả bài kiểm tra không tồn tại"),
 
     // User related errors (3000-3999)
     USER_NOT_FOUND(3001, "Người dùng không tồn tại"),
