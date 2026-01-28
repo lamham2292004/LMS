@@ -1,0 +1,71 @@
+# ==============================================================================
+# Docker Compose - App Only
+# Connect to existing nguyenlam2004-mysql-1 container (nguyenlam2004 stack)
+# Usage: docker compose -f docker-compose.app-only.yml up -d --build
+# ==============================================================================
+
+services:
+  lms-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SKIP_TESTS: ${SKIP_TESTS:-true}
+    image: lms-app:${APP_VERSION:-latest}
+    container_name: lms-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8083}:8083"
+    environment:
+      # Server Configuration
+      SERVER_PORT: 8083
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      TZ: ${TZ:-Asia/Ho_Chi_Minh}
+      
+      # Database - Connect to LMS_mysql_1 container
+      SPRING_DATASOURCE_URL: jdbc:mysql://nguyenlam2004-mysql-1:3306/${MYSQL_DATABASE:-LMS}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-abc123-}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      
+      # JPA
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${JPA_DDL_AUTO:-update}
+      SPRING_JPA_SHOW_SQL: ${JPA_SHOW_SQL:-false}
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
+      
+      # Jackson
+      SPRING_JACKSON_TIME_ZONE: Asia/Ho_Chi_Minh
+      
+      # File Upload
+      SPRING_SERVLET_MULTIPART_ENABLED: "true"
+      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: ${MAX_FILE_SIZE:-200MB}
+      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: ${MAX_REQUEST_SIZE:-200MB}
+      
+      # JWT
+      APP_JWT_SECRET: ${JWT_SECRET:-2nIXqNA3pjyrUvlwxmd8+lbTa/0OWCDgBUg+FXp9Oc5orQmXKmVDXeXWt442G0vX}
+      
+      # CORS
+      CORS_ALLOWED_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001}
+      
+      # External Services
+      NOTIFICATION_SERVICE_URL: ${NOTIFICATION_SERVICE_URL:-http://localhost:8080}
+      IDENTITY_SERVICE_URL: ${IDENTITY_SERVICE_URL:-http://localhost:8080}
+      
+      # No need to wait - MySQL already running
+      WAIT_FOR_DB: "false"
+      
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    networks:
+      - nguyenlam2004_default
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Connect to existing network of LMS_mysql_1
+networks:
+  nguyenlam2004_default:
+    external: true

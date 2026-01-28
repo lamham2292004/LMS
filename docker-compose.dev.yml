@@ -1,0 +1,97 @@
+# ==============================================================================
+# Docker Compose - Development Override
+# Learning Management System (LMS)
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+# ==============================================================================
+
+services:
+  # ============================================================================
+  # MySQL Database - Development Settings
+  # ============================================================================
+  mysql:
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-abc123-}
+    # Enable query logging for debugging
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --general-log=1
+      - --general-log-file=/var/lib/mysql/general.log
+
+  # ============================================================================
+  # Spring Boot Application - Development Settings
+  # ============================================================================
+  lms-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SKIP_TESTS: "true"
+    environment:
+      # Development profile
+      SPRING_PROFILES_ACTIVE: development
+      
+      # Enable SQL logging
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
+      
+      # Debug logging
+      LOGGING_LEVEL_ROOT: INFO
+      LOGGING_LEVEL_COM_APP_LMS: DEBUG
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB: DEBUG
+      LOGGING_LEVEL_ORG_HIBERNATE_SQL: DEBUG
+      
+      # Disable database wait in dev (faster startup)
+      WAIT_FOR_DB: "false"
+      
+    ports:
+      - "${APP_PORT:-8083}:8083"
+      # Debug port for remote debugging
+      - "5005:5005"
+    # Mount source for hot reload (if using spring-boot-devtools)
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+      - ./src:/app/src:ro
+    # Override entrypoint for debugging
+    command: >
+      java 
+      -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      -Dspring.profiles.active=development
+      -jar /app/app.jar
+
+  # ============================================================================
+  # phpMyAdmin - Database Management UI (Development Only)
+  # ============================================================================
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    container_name: lms-phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "${PHPMYADMIN_PORT:-8081}:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD:-abc123-}
+      UPLOAD_LIMIT: 100M
+    depends_on:
+      - mysql
+    networks:
+      - lms-network
+
+  # ============================================================================
+  # Mailhog - Email Testing (Development Only)
+  # ============================================================================
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: lms-mailhog
+    restart: unless-stopped
+    ports:
+      - "${MAILHOG_SMTP_PORT:-1025}:1025"
+      - "${MAILHOG_UI_PORT:-8025}:8025"
+    networks:
+      - lms-network
