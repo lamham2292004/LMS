@@ -1,7 +1,4 @@
-# ==============================================================================
-# Docker Compose - Base Configuration
-# Learning Management System (LMS)
-# ==============================================================================
+version: '3.8'
 
 services:
   # ============================================================================
@@ -10,23 +7,20 @@ services:
   mysql:
     image: mysql:8.0
     container_name: lms-mysql
-    restart: unless-stopped
+    restart: always
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-LMS}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-abc123-}
-      MYSQL_USER: ${MYSQL_USER:-lms_user}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-lms_password}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       TZ: ${TZ:-Asia/Ho_Chi_Minh}
     ports:
       - "${MYSQL_PORT:-3306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
-      - ./docker/mysql/conf.d:/etc/mysql/conf.d:ro
     networks:
       - lms-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-abc123-}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -36,7 +30,6 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
       - --max_connections=200
-      - --innodb_buffer_pool_size=256M
 
   # ============================================================================
   # Spring Boot Application
@@ -46,56 +39,43 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        SKIP_TESTS: ${SKIP_TESTS:-true}
-    image: lms-app:${APP_VERSION:-latest}
+        SKIP_TESTS: "true"
+    image: lms-app:latest
     container_name: lms-app
-    restart: unless-stopped
+    restart: always
     ports:
-      - "${APP_PORT:-8083}:8083"
+      - "${SERVER_PORT:-8083}:8083"
     environment:
       # Server Configuration
       SERVER_PORT: 8083
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      SPRING_PROFILES_ACTIVE: prod
       TZ: ${TZ:-Asia/Ho_Chi_Minh}
       
       # Database Configuration
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-LMS}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_ROOT_PASSWORD:+root}${MYSQL_USER:-root}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-abc123-}
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       
-      # JPA/Hibernate Configuration
-      SPRING_JPA_HIBERNATE_DDL_AUTO: ${JPA_DDL_AUTO:-update}
-      SPRING_JPA_SHOW_SQL: ${JPA_SHOW_SQL:-false}
-      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
-      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
-      
-      # Jackson Configuration
-      SPRING_JACKSON_TIME_ZONE: Asia/Ho_Chi_Minh
-      
-      # File Upload Configuration
-      SPRING_SERVLET_MULTIPART_ENABLED: "true"
-      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: ${MAX_FILE_SIZE:-200MB}
-      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: ${MAX_REQUEST_SIZE:-200MB}
-      
-      # JWT Configuration
-      APP_JWT_SECRET: ${JWT_SECRET:-2nIXqNA3pjyrUvlwxmd8+lbTa/0OWCDgBUg+FXp9Oc5orQmXKmVDXeXWt442G0vX}
-      
-      # CORS Configuration
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001}
-      
-      # VNPay Configuration
-      VNPAY_TMN_CODE: ${VNPAY_TMN_CODE:-QM5SFAPA}
-      VNPAY_SECRET_KEY: ${VNPAY_SECRET_KEY:-GDB9CP7J1GX2C5G196S3DMPXKW3GLG64}
-
-      # External Services
-      NOTIFICATION_SERVICE_URL: ${NOTIFICATION_SERVICE_URL:-http://localhost:8080}
-      IDENTITY_SERVICE_URL: ${IDENTITY_SERVICE_URL:-http://localhost:8080}
-      
-      # Database Wait Configuration
+      # DB Wait Config
       WAIT_FOR_DB: "true"
       DB_WAIT_RETRIES: 30
       DB_WAIT_INTERVAL: 2
+
+      # JWT Configuration
+      APP_JWT_SECRET: ${JWT_SECRET}
+      
+      # CORS Configuration
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      
+      # VNPay Configuration
+      VNPAY_TMN_CODE: ${VNPAY_TMN_CODE}
+      VNPAY_SECRET_KEY: ${VNPAY_SECRET_KEY}
+      VNPAY_PAY_URL: ${VNPAY_PAY_URL:-https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+      VNPAY_RETURN_URL: ${VNPAY_RETURN_URL}
+
+      # File Upload
+      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 100MB
+      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 100MB
       
     volumes:
       - ./uploads:/app/uploads
@@ -111,21 +91,11 @@ services:
         max-size: "10m"
         max-file: "3"
 
-# ==============================================================================
-# Volumes
-# ==============================================================================
 volumes:
   mysql_data:
     driver: local
     name: lms-mysql-data
 
-# ==============================================================================
-# Networks
-# ==============================================================================
 networks:
   lms-network:
     driver: bridge
-    name: lms-network
-    ipam:
-      config:
-        - subnet: 172.28.0.0/16

@@ -43,27 +43,31 @@ LABEL description="LMS - Learning Management System Spring Boot Application"
 
 WORKDIR /app
 
-# Install necessary packages
+# Install necessary packages for healthcheck, timezones, and debugging
+# "Install all environments" - ensuring all system deps are present
 RUN apk add --no-cache \
     curl \
     tzdata \
     netcat-openbsd \
+    fontconfig \
+    ttf-dejavu \
     && rm -rf /var/cache/apk/*
 
 # Set timezone
 ENV TZ=Asia/Ho_Chi_Minh
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-# Create directories
-RUN mkdir -p /app/uploads /app/logs /app/config
+# Create directories including uploads and logs
+RUN mkdir -p /app/uploads /app/logs /app/config && \
+    chmod 777 /app/uploads /app/logs
 
 # Copy entrypoint script
 COPY docker-entrypoint.sh /app/
 RUN chmod +x /app/docker-entrypoint.sh
 
 # Copy the built JAR from build stage
-# Copy all jar files from target (assuming only one executable jar exists after build)
-COPY --from=build /app/target/*.jar /app/app.jar
+# Explicitly copy the main application jar
+COPY --from=build /app/target/LMS-*.jar /app/app.jar
 
 # Create a non-root user for security
 RUN addgroup -g 1001 -S spring && \
@@ -76,7 +80,7 @@ USER spring:spring
 # Expose the application port
 EXPOSE 8083
 
-# Health check with proper timing
+# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8083/actuator/health || exit 1
 
@@ -86,12 +90,10 @@ ENV JAVA_OPTS="-XX:+UseContainerSupport \
     -XX:InitialRAMPercentage=50.0 \
     -XX:+UseG1GC \
     -XX:MaxGCPauseMillis=200 \
-    -XX:+UseStringDeduplication \
-    -Djava.security.egd=file:/dev/./urandom \
-    -Dspring.backgroundpreinitializer.ignore=true"
+    -Djava.security.egd=file:/dev/./urandom"
 
 # Spring profiles (can be overridden)
 ENV SPRING_PROFILES_ACTIVE=prod
 
-# Use entrypoint script for better startup control
+# Use entrypoint script
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
