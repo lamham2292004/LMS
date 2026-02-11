@@ -1,9 +1,12 @@
 package com.app.lms.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 
 import com.app.lms.dto.request.enrollmentRequest.EnrollmentCreateRequest;
 import com.app.lms.dto.request.enrollmentRequest.EnrollmentUpdateRequest;
@@ -32,6 +35,7 @@ public class EnrollmentService {
     final EnrollmentMapper enrollmentMapper;
     final CourseRepository courseRepository;
 
+    @CacheEvict(value = "enrollments", allEntries = true)
     public EnrollmentResponse createEnrollment(EnrollmentCreateRequest request) {
         // Validate course exists
         Course course = courseRepository.findById(request.getCourseId())
@@ -39,12 +43,10 @@ public class EnrollmentService {
 
         // Check if student already enrolled in this course
         if (request.getStudentId() != null) {
-            boolean alreadyEnrolled = enrollmentRepository
-                    .existsByStudentIdAndCourseIdAndStatus(
-                            request.getStudentId(),
-                            request.getCourseId(),
-                            EnrollmentStatus.ACTIVE
-                    );
+            boolean alreadyEnrolled = enrollmentRepository.existsByStudentIdAndCourseIdAndStatus(
+                    request.getStudentId(),
+                    request.getCourseId(),
+                    EnrollmentStatus.ACTIVE);
 
             if (alreadyEnrolled) {
                 throw new AppException(ErroCode.ALREADY_ENROLLED);
@@ -73,10 +75,10 @@ public class EnrollmentService {
     public EnrollmentResponse getEnrollmentById(Long enrollmentId) {
         return enrollmentMapper.toEnrollmentResponse(
                 enrollmentRepository.findById(enrollmentId)
-                        .orElseThrow(() -> new AppException(ErroCode.ENROLLMENT_NO_EXISTED))
-        );
+                        .orElseThrow(() -> new AppException(ErroCode.ENROLLMENT_NO_EXISTED)));
     }
 
+    @CacheEvict(value = "enrollments", allEntries = true)
     public EnrollmentResponse updateEnrollment(Long enrollmentId, EnrollmentUpdateRequest request) {
         Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
                 .orElseThrow(() -> new AppException(ErroCode.ENROLLMENT_NO_EXISTED));
@@ -85,6 +87,7 @@ public class EnrollmentService {
         return enrollmentMapper.toEnrollmentResponse(enrollmentRepository.save(enrollment));
     }
 
+    @CacheEvict(value = "enrollments", allEntries = true)
     public void deleteEnrollment(Long enrollmentId) {
         if (!enrollmentRepository.existsById(enrollmentId)) {
             throw new AppException(ErroCode.ENROLLMENT_NO_EXISTED);
@@ -93,23 +96,25 @@ public class EnrollmentService {
     }
 
     // Additional helper methods
+    @Cacheable(value = "enrollments", key = "'student_' + #studentId")
     public List<EnrollmentResponse> getEnrollmentsByStudentId(Long studentId) {
-        List<Enrollment> enrollments = enrollmentRepository.findByStudentIdAndStatus(studentId, EnrollmentStatus.ACTIVE);
+        List<Enrollment> enrollments = enrollmentRepository.findByStudentIdAndStatus(studentId,
+                EnrollmentStatus.ACTIVE);
         return enrollments.stream()
                 .map(enrollmentMapper::toEnrollmentResponse)
-                .toList();
+                .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "enrollments", key = "'course_' + #courseId")
     public List<EnrollmentResponse> getEnrollmentsByCourseId(Long courseId) {
         List<Enrollment> enrollments = enrollmentRepository.findByCourseIdAndStatus(courseId, EnrollmentStatus.ACTIVE);
         return enrollments.stream()
                 .map(enrollmentMapper::toEnrollmentResponse)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public boolean isStudentEnrolledInCourse(Long studentId, Long courseId) {
         return enrollmentRepository.existsByStudentIdAndCourseIdAndStatus(
-                studentId, courseId, EnrollmentStatus.ACTIVE
-        );
+                studentId, courseId, EnrollmentStatus.ACTIVE);
     }
 }

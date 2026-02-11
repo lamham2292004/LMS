@@ -8,12 +8,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "Spring")
+@Mapper(componentModel = "spring")
 public interface AnswerOptionMapper {
     AnswerOption toAnswerOptionMapper(AnswerOptionCreateRequest request);
 
     @Mapping(source = "question.id", target = "questionId")
     AnswerOptionResponse toAnswerOptionResponse(AnswerOption answerOption);
 
-    void updateAnswerOption (@MappingTarget AnswerOption answerOption, AnswerOptionUpdateRequest request);
+    void updateAnswerOption(@MappingTarget AnswerOption answerOption, AnswerOptionUpdateRequest request);
 }

@@ -9,12 +9,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "Spring")
+@Mapper(componentModel = "spring")
 public interface LessonMapper {
     Lesson toLessonMapper(LessonCreateRequest request);
 
     @Mapping(source = "course.id", target = "courseId")
     LessonResponse toLessonResponse(Lesson lesson);
+
     LessonSummaryResponse toLessonSummaryResponse(Lesson lesson);
 
     void updateLesson(@MappingTarget Lesson lesson, LessonUpdateRequest request);

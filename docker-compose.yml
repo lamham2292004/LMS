@@ -32,6 +32,27 @@ services:
       - --max_connections=200
 
   # ============================================================================
+  # Redis Cache
+  # ============================================================================
+  redis:
+    image: redis:alpine
+    container_name: lms-redis
+    restart: always
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - lms-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  # ============================================================================
   # Spring Boot Application
   # ============================================================================
   lms-app:
@@ -61,6 +82,10 @@ services:
       DB_WAIT_RETRIES: 30
       DB_WAIT_INTERVAL: 2
 
+      # Redis Configuration
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
       # JWT Configuration
       APP_JWT_SECRET: ${JWT_SECRET}
       
@@ -83,6 +108,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - lms-network
     logging:
@@ -95,6 +122,9 @@ volumes:
   mysql_data:
     driver: local
     name: lms-mysql-data
+  redis_data:
+    driver: local
+    name: lms-redis-data
 
 networks:
   lms-network:

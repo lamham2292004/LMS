@@ -7,7 +7,7 @@ import com.app.lms.entity.Category;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "Spring", uses = {CourseMapper.class})
+@Mapper(componentModel = "spring", uses = { CourseMapper.class })
 public interface CategoryMapper {
 
     Category toCategoryMapper(CategoryCreateRequest request);

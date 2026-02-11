@@ -8,12 +8,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "Spring")
+@Mapper(componentModel = "spring")
 public interface EnrollmentMapper {
-    Enrollment toEnrollmentMapper (EnrollmentCreateRequest request);
+    Enrollment toEnrollmentMapper(EnrollmentCreateRequest request);
+
     @Mapping(source = "course.title", target = "courseName")
     @Mapping(source = "course.img", target = "courseImg")
-    EnrollmentResponse toEnrollmentResponse (Enrollment enrollment);
+    EnrollmentResponse toEnrollmentResponse(Enrollment enrollment);
 
-    void updateEnrollment (@MappingTarget Enrollment enrollment, EnrollmentUpdateRequest request);
+    void updateEnrollment(@MappingTarget Enrollment enrollment, EnrollmentUpdateRequest request);
 }

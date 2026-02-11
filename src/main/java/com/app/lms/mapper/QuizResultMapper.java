@@ -6,7 +6,7 @@ import com.app.lms.entity.QuizResult;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "Spring")
+@Mapper(componentModel = "spring")
 public interface QuizResultMapper {
     @Mapping(source = "quizResult.id", target = "id")
     @Mapping(source = "quizResult.quizId", target = "quizId")
@@ -18,8 +18,8 @@ public interface QuizResultMapper {
             QuizResult quizResult,
             Quiz quiz,
             String studentName,
-            String feedback
-    );
+            String feedback);
+
     @Mapping(source = "quizResult.id", target = "id")
     @Mapping(source = "quizResult.quizId", target = "quizId")
     @Mapping(source = "quiz.title", target = "quizTitle")

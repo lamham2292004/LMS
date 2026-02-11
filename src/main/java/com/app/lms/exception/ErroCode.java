@@ -19,6 +19,7 @@ public enum ErroCode {
     QUIZ_NO_EXISTED(1011, "Bài kiểm tra không tồn tại"),
     QUESTION_NO_EXISTED(1012, "Câu hỏi không tồn tại"),
     ANSWER_OPTION_NO_EXISTED(1013, "Đáp án không tồn tại"),
+    INVALID_YOUTUBE_URL(1030, "Link YouTube không hợp lệ"),
 
     // ===== JWT & Authentication Errors (2000-2999) =====
     TOKEN_MISSING(2001, "Token không tồn tại trong request"),
@@ -73,7 +74,11 @@ public enum ErroCode {
     COUPON_INVALID(4102, "Mã giảm giá không hợp lệ"),
     COUPON_EXPIRED(4103, "Mã giảm giá đã hết hạn"),
     COUPON_USAGE_LIMIT_REACHED(4104, "Mã giảm giá đã hết lượt sử dụng"),
-    COUPON_NOT_APPLICABLE(4105, "Mã giảm giá không áp dụng cho khóa học này");
+    COUPON_NOT_APPLICABLE(4105, "Mã giảm giá không áp dụng cho khóa học này"),
+
+    // Progress tracking errors (5000-5099)
+    PROGRESS_NOT_FOUND(5001, "Tiến độ học không tồn tại"),
+    LESSON_NOT_IN_COURSE(5002, "Bài học không thuộc khóa học đã đăng ký");
 
     private int code;
     private String message;

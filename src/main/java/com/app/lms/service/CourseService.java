@@ -3,9 +3,12 @@ package com.app.lms.service;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 import com.app.lms.dto.request.ApprovalRequest.ApprovalRequest;
 import com.app.lms.entity.Category;
 import com.app.lms.enums.ApprovalStatus;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.app.lms.dto.request.courseRequest.CourseCreateRequest;
@@ -33,14 +36,15 @@ public class CourseService {
    final CategoryRepository categoryRepository;
    final NotificationService notificationService;
 
+   @CacheEvict(value = "courses", allEntries = true)
    public CourseResponse createCourse(CourseCreateRequest request, MultipartFile file, String lecturerName) {
-      if (courseRepository.existsByTitle(request.getTitle())){
+      if (courseRepository.existsByTitle(request.getTitle())) {
          throw new AppException(ErroCode.TITLE_EXISTED);
       }
       Course course = courseMapper.toCourseMapper(request);
 
       Category category = categoryRepository.findById(request.getCategoryId())
-              .orElseThrow(()-> new AppException(ErroCode.CATEGORY_NO_EXISTED));
+            .orElseThrow(() -> new AppException(ErroCode.CATEGORY_NO_EXISTED));
 
       course.setCategory(category);
 
@@ -56,10 +60,10 @@ public class CourseService {
       course.setApprovalStatus(ApprovalStatus.PENDING);
 
       log.info("Creating course '{}' by lecturer {} - Status: PENDING approval",
-              course.getTitle(), course.getTeacherId());
+            course.getTitle(), course.getTeacherId());
 
       Course savedCourse = courseRepository.save(course);
-      
+
       // Gửi thông báo về System-Management
       notificationService.sendCourseCreatedNotification(savedCourse, lecturerName);
 
@@ -67,49 +71,55 @@ public class CourseService {
    }
 
    // CHỈ LẤY KHÓA HỌC ĐÃ PHÊ DUYỆT CHO STUDENTS
-   public List<CourseResponse> getAllCourses(){
+   @Cacheable(value = "courses", key = "'all_approved'")
+   public List<CourseResponse> getAllCourses() {
       return courseRepository.findAll()
-              .stream()
-              .filter(course -> course.getApprovalStatus() == ApprovalStatus.APPROVED)
-              .map(courseMapper::toCourseResponse)
-              .toList();
+            .stream()
+            .filter(course -> course.getApprovalStatus() == ApprovalStatus.APPROVED)
+            .map(courseMapper::toCourseResponse)
+            .collect(Collectors.toList());
    }
 
    // LẤY TẤT CẢ KHÓA HỌC (CHO ADMIN)
-   public List<CourseResponse> getAllCoursesForAdmin(){
+   @Cacheable(value = "courses", key = "'all_admin'")
+   public List<CourseResponse> getAllCoursesForAdmin() {
       return courseRepository.findAll()
-              .stream()
-              .map(courseMapper::toCourseResponse)
-              .toList();
+            .stream()
+            .map(courseMapper::toCourseResponse)
+            .collect(Collectors.toList());
    }
 
    // LẤY KHÓA HỌC PENDING (CHỜ PHÊ DUYỆT)
-   public List<CourseResponse> getPendingCourses(){
+   @Cacheable(value = "courses", key = "'pending'")
+   public List<CourseResponse> getPendingCourses() {
       return courseRepository.findAll()
-              .stream()
-              .filter(course -> course.getApprovalStatus() == ApprovalStatus.PENDING)
-              .map(courseMapper::toCourseResponse)
-              .toList();
+            .stream()
+            .filter(course -> course.getApprovalStatus() == ApprovalStatus.PENDING)
+            .map(courseMapper::toCourseResponse)
+            .collect(Collectors.toList());
    }
 
    // LẤY KHÓA HỌC CỦA LECTURER (BAO GỒM CẢ PENDING)
-   public List<CourseResponse> getCoursesByLecturer(Long lecturerId){
+   @Cacheable(value = "courses", key = "'lecturer_' + #lecturerId")
+   public List<CourseResponse> getCoursesByLecturer(Long lecturerId) {
       return courseRepository.findAll()
-              .stream()
-              .filter(course -> course.getTeacherId().equals(lecturerId))
-              .map(courseMapper::toCourseResponse)
-              .toList();
+            .stream()
+            .filter(course -> course.getTeacherId().equals(lecturerId))
+            .map(courseMapper::toCourseResponse)
+            .collect(Collectors.toList());
    }
 
-   public CourseResponse getCourseById(Long courseId){
+   @Cacheable(value = "courses", key = "#courseId")
+   public CourseResponse getCourseById(Long courseId) {
       return courseMapper.toCourseResponse(courseRepository.findById(courseId)
-              .orElseThrow(() -> new AppException(ErroCode.COURSE_NO_EXISTED)));
+            .orElseThrow(() -> new AppException(ErroCode.COURSE_NO_EXISTED)));
    }
 
    // PHÊ DUYỆT/TỪ CHỐI KHÓA HỌC (ADMIN ONLY)
+   @CacheEvict(value = "courses", allEntries = true)
    public CourseResponse approveCourse(Long courseId, ApprovalRequest request, Long adminId) {
       Course course = courseRepository.findById(courseId)
-              .orElseThrow(() -> new AppException(ErroCode.COURSE_NO_EXISTED));
+            .orElseThrow(() -> new AppException(ErroCode.COURSE_NO_EXISTED));
 
       // Validate trạng thái hiện tại
       if (course.getApprovalStatus() != ApprovalStatus.PENDING) {
@@ -133,10 +143,10 @@ public class CourseService {
       }
 
       log.info("Course {} has been {} by admin {}",
-              courseId, request.getApprovalStatus(), adminId);
+            courseId, request.getApprovalStatus(), adminId);
 
       Course savedCourse = courseRepository.save(course);
-      
+
       // Gửi thông báo về System-Management
       if (request.getApprovalStatus() == ApprovalStatus.APPROVED) {
          notificationService.sendCourseApprovedNotification(savedCourse, adminId);
@@ -147,15 +157,16 @@ public class CourseService {
       return courseMapper.toCourseResponse(savedCourse);
    }
 
-   public CourseResponse updateCourse(Long courseId, CourseUpdateRequest request, MultipartFile file){
+   @CacheEvict(value = "courses", allEntries = true)
+   public CourseResponse updateCourse(Long courseId, CourseUpdateRequest request, MultipartFile file) {
       Course course = courseRepository.findById(courseId)
-              .orElseThrow(() -> new AppException(ErroCode.COURSE_NO_EXISTED));
+            .orElseThrow(() -> new AppException(ErroCode.COURSE_NO_EXISTED));
 
       courseMapper.updateCourse(course, request);
 
       if (request.getCategoryId() != null) {
          Category category = categoryRepository.findById(request.getCategoryId())
-                 .orElseThrow(() -> new AppException(ErroCode.CATEGORY_NO_EXISTED));
+               .orElseThrow(() -> new AppException(ErroCode.CATEGORY_NO_EXISTED));
          course.setCategory(category);
       }
 
@@ -167,7 +178,7 @@ public class CourseService {
             throw new AppException(ErroCode.FILE_ERRO);
          }
       }
-   
+
       // NẾU LECTURER SỬA KHÓA HỌC ĐÃ PHÊ DUYỆT → ĐƯA VỀ PENDING
       if (course.getApprovalStatus() == ApprovalStatus.APPROVED) {
          course.setApprovalStatus(ApprovalStatus.PENDING);
@@ -179,7 +190,8 @@ public class CourseService {
       return courseMapper.toCourseResponse(courseRepository.save(course));
    }
 
-   public void deleteCourse(Long courseId){
+   @CacheEvict(value = "courses", allEntries = true)
+   public void deleteCourse(Long courseId) {
       courseRepository.deleteById(courseId);
    }
 }

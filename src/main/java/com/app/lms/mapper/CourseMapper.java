@@ -8,13 +8,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "Spring")
+@Mapper(componentModel = "spring")
 public interface CourseMapper {
 
     Course toCourseMapper(CourseCreateRequest request);
 
     @Mapping(source = "category.id", target = "categoryId")
-    @Mapping(source = "category.name",target = "categoryName")
+    @Mapping(source = "category.name", target = "categoryName")
     CourseResponse toCourseResponse(Course course);
 
     void updateCourse(@MappingTarget Course course, CourseUpdateRequest request);

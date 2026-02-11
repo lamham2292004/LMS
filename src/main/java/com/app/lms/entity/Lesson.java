@@ -27,7 +27,7 @@ public class Lesson {
     @JoinColumn(name = "course_id", nullable = false)
     Course course;
 
-    @Column(name = "course_id", nullable = false,insertable = false, updatable = false)
+    @Column(name = "course_id", nullable = false, insertable = false, updatable = false)
     Long courseId;
 
     @Column(nullable = false)
@@ -37,7 +37,7 @@ public class Lesson {
     String description;
 
     @Column(name = "order_index")
-    int orderIndex = 0; //so thu tu
+    int orderIndex = 0; // so thu tu
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -54,6 +54,6 @@ public class Lesson {
     @UpdateTimestamp
     OffsetDateTime updatedAt;
 
-    @Column(name = "video_path")
-    String videoPath; // Đường dẫn video bài học (lưu local)
+    @Column(name = "youtube_url")
+    String youtubeUrl; // Link YouTube của bài học
 }

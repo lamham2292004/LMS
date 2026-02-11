@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.io.Serializable;
 
 @Data
 @Builder
@@ -15,10 +16,11 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 
-public class CourseResponse {
+public class CourseResponse implements Serializable {
     Long id;
     String title;
     String description;
+    @Builder.Default
     BigDecimal price = BigDecimal.ZERO;
     Long teacherId;
     CourseStatus status;

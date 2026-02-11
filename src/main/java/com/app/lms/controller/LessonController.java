@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.app.lms.annotation.CurrentUser;
 import com.app.lms.dto.auth.UserTokenInfo;
@@ -27,16 +26,15 @@ import lombok.experimental.FieldDefaults;
 public class LessonController {
     final LessonService lessonService;
 
-    @PostMapping(value = "/createLesson", consumes = {"multipart/form-data"})
+    @PostMapping("/createLesson")
     @PreAuthorize("hasRole('ADMIN') or " +
             "(hasRole('LECTURER') and @authorizationService.canLecturerCreateLessonInCourse(#request.courseId, authentication.name))")
     public ApiResponse<LessonResponse> createLesson(
-            @RequestPart("lesson") @Valid LessonCreateRequest request,
-            @RequestPart(value = "video", required = false) MultipartFile video,
+            @RequestBody @Valid LessonCreateRequest request,
             @CurrentUser UserTokenInfo currentUser) {
 
         ApiResponse<LessonResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(lessonService.createLesson(request, video));
+        apiResponse.setResult(lessonService.createLesson(request));
         return apiResponse;
     }
 
@@ -59,15 +57,14 @@ public class LessonController {
         return apiResponse;
     }
 
-    @PutMapping(value = "/updateLesson/{lessonId}", consumes = {"multipart/form-data"})
-    @PreAuthorize("hasRole('ADMIN') or " + "(hasRole('LECTURER') and @authorizationService.canLecturerEditLesson(#lessonId, authentication.name))")
+    @PutMapping("/updateLesson/{lessonId}")
+    @PreAuthorize("hasRole('ADMIN') or "
+            + "(hasRole('LECTURER') and @authorizationService.canLecturerEditLesson(#lessonId, authentication.name))")
     public ApiResponse<LessonResponse> updateLesson(
             @PathVariable Long lessonId,
-            @RequestPart("lesson") @Valid LessonUpdateRequest request,
-            @RequestPart(value = "video", required = false) MultipartFile video) {
-        // Video là optional - nếu không có video thì chỉ update thông tin
+            @RequestBody @Valid LessonUpdateRequest request) {
         ApiResponse<LessonResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(lessonService.updateLesson(lessonId, request, video));
+        apiResponse.setResult(lessonService.updateLesson(lessonId, request));
         return apiResponse;
     }
 

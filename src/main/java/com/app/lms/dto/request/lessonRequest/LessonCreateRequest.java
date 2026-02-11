@@ -27,6 +27,6 @@ public class LessonCreateRequest {
 
     Integer duration;
 
-    String videoPath;
+    String youtubeUrl;
 
 }

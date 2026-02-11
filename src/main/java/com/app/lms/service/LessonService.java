@@ -1,10 +1,10 @@
 package com.app.lms.service;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 
 import com.app.lms.dto.request.lessonRequest.LessonCreateRequest;
 import com.app.lms.dto.request.lessonRequest.LessonUpdateRequest;
@@ -16,6 +16,7 @@ import com.app.lms.exception.ErroCode;
 import com.app.lms.mapper.LessonMapper;
 import com.app.lms.repository.CourseRepository;
 import com.app.lms.repository.LessonRepository;
+import com.app.lms.util.YouTubeUtils;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -27,65 +28,65 @@ import lombok.experimental.FieldDefaults;
 public class LessonService {
     final LessonRepository lessonRepository;
     final LessonMapper lessonMapper;
-    final FileUploadService fileUploadService;
     final CourseRepository courseRepository;
 
-    public LessonResponse createLesson(LessonCreateRequest request, MultipartFile videoFile) {
+    @CacheEvict(value = "lessons", allEntries = true)
+    public LessonResponse createLesson(LessonCreateRequest request) {
         if (lessonRepository.existsByTitle(request.getTitle())) {
             throw new AppException(ErroCode.TITLE_EXISTED);
         }
 
         Course course = courseRepository.findById(request.getCourseId())
-                .orElseThrow(()-> new AppException(ErroCode.COURSE_NO_EXISTED));
+                .orElseThrow(() -> new AppException(ErroCode.COURSE_NO_EXISTED));
 
-        Lesson lesson = lessonMapper.toLessonMapper(request);
-
-        lesson.setCourse(course);
-
-        // Nếu có file video thì upload
-        if (videoFile != null && !videoFile.isEmpty()) {
-            try {
-                String videoPath = fileUploadService.saveLessonVideo(videoFile);
-                lesson.setVideoPath(videoPath); // giả sử trong entity Lesson có field `video`
-            } catch (IOException e) {
-                throw new AppException(ErroCode.FILE_EXISTED); // bạn có thể thêm enum mới
+        // Validate YouTube URL nếu có
+        if (request.getYoutubeUrl() != null && !request.getYoutubeUrl().isBlank()) {
+            if (!YouTubeUtils.isValidYoutubeUrl(request.getYoutubeUrl())) {
+                throw new AppException(ErroCode.INVALID_YOUTUBE_URL);
             }
         }
 
-        return lessonMapper.toLessonResponse(lessonRepository.save(lesson));
+        Lesson lesson = lessonMapper.toLessonMapper(request);
+        lesson.setCourse(course);
+
+        Lesson savedLesson = lessonRepository.save(lesson);
+        return buildLessonResponse(savedLesson);
     }
 
+    @Cacheable(value = "lessons", key = "'all'")
     public List<LessonResponse> getAllLessons() {
         return lessonRepository.findAll()
                 .stream()
-                .map(lessonMapper::toLessonResponse)
+                .map(this::buildLessonResponse)
                 .toList();
     }
 
-
+    @Cacheable(value = "lessons", key = "#lessonId")
     public LessonResponse getLessonById(Long lessonId) {
-        return lessonMapper.toLessonResponse(lessonRepository.findById(lessonId)
-                .orElseThrow(()-> new AppException(ErroCode.LESSON_NO_EXISTED)));
+        Lesson lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new AppException(ErroCode.LESSON_NO_EXISTED));
+        return buildLessonResponse(lesson);
     }
 
-    public LessonResponse updateLesson(Long lessonId, LessonUpdateRequest request, MultipartFile videoFile) {
+    @CacheEvict(value = "lessons", allEntries = true)
+    public LessonResponse updateLesson(Long lessonId, LessonUpdateRequest request) {
         Lesson lesson = lessonRepository.findById(lessonId)
-                .orElseThrow(()-> new AppException(ErroCode.LESSON_NO_EXISTED));
-        lessonMapper.updateLesson(lesson,request);
-        // Update video if provided
-        if (videoFile != null && !videoFile.isEmpty()) {
-            try {
-                String videoPath = fileUploadService.saveLessonVideo(videoFile);
-                lesson.setVideoPath(videoPath);
-            } catch (IOException e) {
-                throw new AppException(ErroCode.FILE_ERRO);
+                .orElseThrow(() -> new AppException(ErroCode.LESSON_NO_EXISTED));
+
+        // Validate YouTube URL nếu có
+        if (request.getYoutubeUrl() != null && !request.getYoutubeUrl().isBlank()) {
+            if (!YouTubeUtils.isValidYoutubeUrl(request.getYoutubeUrl())) {
+                throw new AppException(ErroCode.INVALID_YOUTUBE_URL);
             }
         }
 
-        return lessonMapper.toLessonResponse(lessonRepository.save(lesson));
+        lessonMapper.updateLesson(lesson, request);
+
+        Lesson savedLesson = lessonRepository.save(lesson);
+        return buildLessonResponse(savedLesson);
     }
 
-
+    @CacheEvict(value = "lessons", allEntries = true)
     public void deleteLesson(Long lessonId) {
         if (!lessonRepository.existsById(lessonId)) {
             throw new AppException(ErroCode.LESSON_NO_EXISTED);
@@ -93,10 +94,20 @@ public class LessonService {
         lessonRepository.deleteById(lessonId);
     }
 
+    @Cacheable(value = "lessons", key = "'course_' + #courseId")
     public List<LessonResponse> getLessonsByCourseId(Long courseId) {
         return lessonRepository.findAll().stream()
                 .filter(lesson -> lesson.getCourseId().equals(courseId))
-                .map(lessonMapper::toLessonResponse)
+                .map(this::buildLessonResponse)
                 .toList();
+    }
+
+    private LessonResponse buildLessonResponse(Lesson lesson) {
+        LessonResponse response = lessonMapper.toLessonResponse(lesson);
+        // Tạo embed URL từ YouTube URL
+        if (lesson.getYoutubeUrl() != null && !lesson.getYoutubeUrl().isBlank()) {
+            response.setYoutubeEmbedUrl(YouTubeUtils.toEmbedUrl(lesson.getYoutubeUrl()));
+        }
+        return response;
     }
 }
