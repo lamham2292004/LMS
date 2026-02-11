@@ -12,55 +12,53 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
-    @Value("${cors.allowed-origins:http://localhost:3005,http://127.0.0.1:3005,http://localhost:3001,http://127.0.0.1:3001}")
-    private String allowedOrigins;
+        @Value("${cors.allowed-origins:http://localhost:3005,http://127.0.0.1:3005,http://localhost:3001,http://127.0.0.1:3001}")
+        private String allowedOrigins;
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration configuration = new CorsConfiguration();
 
-        // ✅ Cấu hình Origins cho Next.js
-        List<String> origins = Arrays.asList(allowedOrigins.split(","));
-        configuration.setAllowedOriginPatterns(origins);
+                // ✅ Cấu hình Origins cho Next.js
+                List<String> origins = Arrays.asList(allowedOrigins.split(","));
+                configuration.setAllowedOriginPatterns(origins);
 
-        // ⚠️ QUAN TRỌNG: Cho phép credentials (cần cho JWT cookies)
-        configuration.setAllowCredentials(true);
+                // ⚠️ QUAN TRỌNG: Cho phép credentials (cần cho JWT cookies)
+                configuration.setAllowCredentials(true);
 
-        // ✅ HTTP methods cho Next.js API calls
-        configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"
-        ));
+                // ✅ HTTP methods cho Next.js API calls
+                configuration.setAllowedMethods(Arrays.asList(
+                                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"));
 
-        // ✅ Headers Next.js cần
-        configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "Accept",
-                "Origin",
-                "Access-Control-Request-Method",
-                "Access-Control-Request-Headers",
-                "X-Requested-With",
-                "X-Auth-Token",
-                "X-CSRF-Token",
-                "Cache-Control"
-        ));
+                // ✅ Headers Next.js cần
+                configuration.setAllowedHeaders(Arrays.asList(
+                                "Authorization",
+                                "Content-Type",
+                                "Accept",
+                                "Origin",
+                                "Access-Control-Request-Method",
+                                "Access-Control-Request-Headers",
+                                "X-Requested-With",
+                                "X-Auth-Token",
+                                "X-CSRF-Token",
+                                "Cache-Control"));
 
-        // ✅ Headers FE có thể đọc
-        configuration.setExposedHeaders(Arrays.asList(
-                "Access-Control-Allow-Origin",
-                "Access-Control-Allow-Credentials",
-                "Authorization",
-                "Content-Disposition",
-                "X-Total-Count" // Thêm cho pagination
-        ));
+                // ✅ Headers FE có thể đọc
+                configuration.setExposedHeaders(Arrays.asList(
+                                "Access-Control-Allow-Origin",
+                                "Access-Control-Allow-Credentials",
+                                "Authorization",
+                                "Content-Disposition",
+                                "X-Total-Count" // Thêm cho pagination
+                ));
 
-        // ✅ Tăng thời gian cache preflight
-        configuration.setMaxAge(3600L);
+                // ✅ Tăng thời gian cache preflight
+                configuration.setMaxAge(3600L);
 
-        // Apply CORS cho tất cả LMS endpoints
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", configuration);
+                // Apply CORS cho tất cả LMS endpoints
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", configuration);
 
-        return source;
-    }
+                return source;
+        }
 }
