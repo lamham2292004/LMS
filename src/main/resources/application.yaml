@@ -64,7 +64,6 @@ vnpay:
   return-url: ${VNPAY_RETURN_URL}
   # Note: frontend-url tự động lấy từ cors.allowed-origins (port 3000 hoặc 3001)
 
-
 # Actuator Configuration
 management:
   endpoints:
@@ -82,10 +81,9 @@ spring:
       on-profile: development
 
 cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3005,http://localhost:3001}
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3005,http://localhost:3001,http://hethongdientu,khoacongnghethongtinhpc.io.vn,https://hethongdientu.khoacongnghethongtinhpc.io.vn}
 
 logging:
   level:
     org.springframework.web.cors: DEBUG
     org.springframework.security: DEBUG
-
