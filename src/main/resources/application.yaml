@@ -81,7 +81,7 @@ spring:
       on-profile: development
 
 cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3005,http://localhost:3001,http://hethongdientu,khoacongnghethongtinhpc.io.vn,https://hethongdientu.khoacongnghethongtinhpc.io.vn}
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3005,http://localhost:3001,http://hethongdientu,khoacongnghethongtinhpc.io.vn,https://hethongdientu.khoacongnghethongtinhpc.io.vn,http://hethongdientu.khoacongnghethongtinhpc.io.vn:3001}
 
 logging:
   level:
