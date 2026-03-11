@@ -13,6 +13,8 @@ import com.app.lms.repository.QuizRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -24,6 +26,10 @@ public class QuestionService {
     final QuestionMapper questionMapper;
     final QuizRepository quizRepository;
 
+    @Caching(evict = {
+            @CacheEvict(value = "lessons", allEntries = true),
+            @CacheEvict(value = "courses", allEntries = true)
+    })
     public QuestionResponse createQuestion(QuestionCreateRequest request) {
         if (questionRepository.existsByQuestionText(request.getQuestionText())) {
             throw new AppException(ErroCode.TITLE_EXISTED);
@@ -48,6 +54,10 @@ public class QuestionService {
                 .toList();
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "lessons", allEntries = true),
+            @CacheEvict(value = "courses", allEntries = true)
+    })
     public QuestionResponse updateQuestion(Long questionId, QuestionUpdateRequest request) {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(()-> new AppException(ErroCode.QUESTION_NO_EXISTED));
@@ -55,6 +65,10 @@ public class QuestionService {
         return questionMapper.toQuestionResponse(questionRepository.save(question));
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "lessons", allEntries = true),
+            @CacheEvict(value = "courses", allEntries = true)
+    })
     public void deleteQuestion(Long questionId) {
         if (!questionRepository.existsById(questionId)) {
             throw new AppException(ErroCode.QUESTION_NO_EXISTED);

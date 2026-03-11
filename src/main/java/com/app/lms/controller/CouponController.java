@@ -91,4 +91,13 @@ public class CouponController {
         apiResponse.setResult(couponService.validateCouponForCourse(request.getCouponCode(), request.getCourseId()));
         return apiResponse;
     }
+
+    @GetMapping("/available/{courseId}")
+    @PreAuthorize("hasRole('STUDENT') or hasRole('ADMIN')")
+    public ApiResponse<List<CouponResponse>> getAvailableCouponsForCourse(@PathVariable Long courseId) {
+        log.info("Getting available coupons for course: {}", courseId);
+        ApiResponse<List<CouponResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(couponService.getAvailableCouponsForCourse(courseId));
+        return apiResponse;
+    }
 }

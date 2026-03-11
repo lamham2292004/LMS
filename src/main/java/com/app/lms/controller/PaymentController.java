@@ -137,9 +137,6 @@ public class PaymentController {
         return response;
     }
 
-    /**
-     * Lấy lịch sử thanh toán của student
-     */
     @GetMapping("/history")
     @PreAuthorize("hasRole('STUDENT')")
     public ApiResponse<List<Payment>> getPaymentHistory(@CurrentUser UserTokenInfo currentUser) {
@@ -156,9 +153,6 @@ public class PaymentController {
         return apiResponse;
     }
 
-    /**
-     * Get payment by ID (Student hoặc Admin)
-     */
     @GetMapping("/{paymentId}")
     @PreAuthorize("hasRole('STUDENT') or hasRole('ADMIN')")
     public ApiResponse<Payment> getPaymentById(
@@ -177,6 +171,19 @@ public class PaymentController {
 
         ApiResponse<Payment> apiResponse = new ApiResponse<>();
         apiResponse.setResult(payment);
+        return apiResponse;
+    }
+
+    @GetMapping("/admin/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<List<Payment>> getAllPaymentsForAdmin(@CurrentUser UserTokenInfo currentUser) {
+        log.info("Admin {} is getting all payments", currentUser.getUserId());
+        if (currentUser.getIsAdmin() == null || !currentUser.getIsAdmin()) {
+            throw new AppException(ErroCode.ADMIN_ONLY);
+        }
+        List<Payment> payments = paymentService.getAllPayments();
+        ApiResponse<List<Payment>> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(payments);
         return apiResponse;
     }
 }

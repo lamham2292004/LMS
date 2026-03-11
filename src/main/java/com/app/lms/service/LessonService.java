@@ -2,6 +2,7 @@ package com.app.lms.service;
 
 import java.util.List;
 
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
@@ -30,7 +31,10 @@ public class LessonService {
     final LessonMapper lessonMapper;
     final CourseRepository courseRepository;
 
-    @CacheEvict(value = "lessons", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "lessons", allEntries = true),
+            @CacheEvict(value = "courses", allEntries = true)
+    })
     public LessonResponse createLesson(LessonCreateRequest request) {
         if (lessonRepository.existsByTitle(request.getTitle())) {
             throw new AppException(ErroCode.TITLE_EXISTED);
@@ -68,7 +72,10 @@ public class LessonService {
         return buildLessonResponse(lesson);
     }
 
-    @CacheEvict(value = "lessons", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "lessons", allEntries = true),
+            @CacheEvict(value = "courses", allEntries = true)
+    })
     public LessonResponse updateLesson(Long lessonId, LessonUpdateRequest request) {
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new AppException(ErroCode.LESSON_NO_EXISTED));
@@ -86,7 +93,10 @@ public class LessonService {
         return buildLessonResponse(savedLesson);
     }
 
-    @CacheEvict(value = "lessons", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "lessons", allEntries = true),
+            @CacheEvict(value = "courses", allEntries = true)
+    })
     public void deleteLesson(Long lessonId) {
         if (!lessonRepository.existsById(lessonId)) {
             throw new AppException(ErroCode.LESSON_NO_EXISTED);

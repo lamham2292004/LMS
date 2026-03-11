@@ -219,6 +219,13 @@ public class PaymentService {
     }
 
     /**
+     * Lấy tất cả payment (ADMIN only)
+     */
+    public List<Payment> getAllPayments() {
+        return paymentRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+    /**
      * Lấy payment history của student
      */
     public List<Payment> getPaymentHistory(Long studentId) {

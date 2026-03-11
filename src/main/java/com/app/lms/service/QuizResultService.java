@@ -69,8 +69,8 @@ public class QuizResultService {
                 .correctAnswers(gradingResult.getCorrectAnswers())
                 .timeTaken(request.getTimeTaken())
                 .attemptNumber(currentAttempt)
-                .isPassed(gradingResult.getScore().doubleValue() >=
-                        (quiz.getPassScore() != null ? quiz.getPassScore() : 60.0))
+                .isPassed(gradingResult.getScore()
+                        .doubleValue() >= (quiz.getPassScore() != null ? quiz.getPassScore() : 60.0))
                 .build();
 
         // 7. Lưu vào database

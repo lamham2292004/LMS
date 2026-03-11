@@ -1,6 +1,7 @@
 package com.app.lms.entity;
 
 import com.app.lms.enums.PaymentStatus;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -34,6 +35,7 @@ public class Payment {
     // Thông tin khóa học
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "lessons", "enrollments", "category", "teacher"})
     Course course;
 
     // Thông tin giá

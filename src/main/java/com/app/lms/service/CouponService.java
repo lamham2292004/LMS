@@ -38,11 +38,7 @@ public class CouponService {
     CourseRepository courseRepository;
     CouponMapper couponMapper;
 
-    // ==================== CRUD Operations ====================
 
-    /**
-     * Tạo coupon mới (Admin)
-     */
     @Transactional
     public CouponResponse createCoupon(CouponCreateRequest request, Long adminId) {
         log.info("Creating coupon: {} by admin: {}", request.getCode(), adminId);
@@ -70,9 +66,6 @@ public class CouponService {
         return couponMapper.toCouponResponse(coupon);
     }
 
-    /**
-     * Lấy tất cả coupon (Admin)
-     */
     public List<CouponResponse> getAllCoupons() {
         log.info("Getting all coupons");
         return couponRepository.findAll().stream()
@@ -80,9 +73,6 @@ public class CouponService {
                 .toList();
     }
 
-    /**
-     * Lấy coupon theo ID (Admin)
-     */
     public CouponResponse getCouponById(Long couponId) {
         log.info("Getting coupon by ID: {}", couponId);
         Coupon coupon = couponRepository.findById(couponId)
@@ -90,9 +80,6 @@ public class CouponService {
         return couponMapper.toCouponResponse(coupon);
     }
 
-    /**
-     * Cập nhật coupon (Admin)
-     */
     @Transactional
     public CouponResponse updateCoupon(Long couponId, CouponUpdateRequest request) {
         log.info("Updating coupon ID: {}", couponId);
@@ -119,9 +106,6 @@ public class CouponService {
         return couponMapper.toCouponResponse(coupon);
     }
 
-    /**
-     * Xóa coupon (Admin)
-     */
     @Transactional
     public void deleteCoupon(Long couponId) {
         log.info("Deleting coupon ID: {}", couponId);
@@ -131,11 +115,26 @@ public class CouponService {
         couponRepository.deleteById(couponId);
     }
 
-    // ==================== Validation Operations ====================
+    public List<CouponResponse> getAvailableCouponsForCourse(Long courseId) {
+        log.info("Getting available coupons for course: {}", courseId);
+        OffsetDateTime now = OffsetDateTime.now();
 
-    /**
-     * Validate coupon cho khóa học cụ thể (Student)
-     */
+        return couponRepository.findAll().stream()
+                .filter(coupon -> coupon.getStatus() == CouponStatus.ACTIVE)
+                // Lọc theo khóa học (áp dụng cho tất cả hoặc áp dụng riêng cho khóa học này)
+                .filter(coupon -> coupon.getApplicableCourse() == null
+                        || coupon.getApplicableCourse().getId().equals(courseId))
+                // Lọc thời gian bắt đầu
+                .filter(coupon -> coupon.getStartDate() == null || !now.isBefore(coupon.getStartDate()))
+                // Lọc thời gian kết thúc
+                .filter(coupon -> coupon.getEndDate() == null || !now.isAfter(coupon.getEndDate()))
+                // Lọc giới hạn sử dụng
+                .filter(coupon -> coupon.getUsageLimit() == null
+                        || (coupon.getUsedCount() != null && coupon.getUsedCount() < coupon.getUsageLimit()))
+                .map(couponMapper::toCouponResponse)
+                .toList();
+    }
+
     public CouponValidationResponse validateCouponForCourse(String couponCode, Long courseId) {
         log.info("Validating coupon: {} for course: {}", couponCode, courseId);
 
@@ -145,9 +144,6 @@ public class CouponService {
         return validateCoupon(couponCode, course, course.getPrice());
     }
 
-    /**
-     * Validate coupon và tính discount
-     */
     public CouponValidationResponse validateCoupon(String couponCode, Course course, BigDecimal orderValue) {
         log.info("Validating coupon: {} for course: {} (price: {})", couponCode, course.getId(), orderValue);
 
@@ -240,9 +236,6 @@ public class CouponService {
                 .build();
     }
 
-    /**
-     * Tính số tiền giảm dựa vào loại coupon
-     */
     public BigDecimal calculateDiscount(Coupon coupon, BigDecimal orderValue) {
         BigDecimal discount;
 
@@ -274,9 +267,6 @@ public class CouponService {
         return discount.setScale(2, RoundingMode.HALF_UP);
     }
 
-    /**
-     * Ghi nhận việc sử dụng coupon
-     */
     @Transactional
     public void recordUsage(Coupon coupon, Payment payment, Long studentId, BigDecimal discountAmount) {
         log.info("Recording coupon usage - Coupon: {}, Student: {}, Payment: {}",
@@ -300,11 +290,10 @@ public class CouponService {
         log.info("Coupon usage recorded successfully. Total used: {}", coupon.getUsedCount());
     }
 
-    /**
-     * Lấy coupon theo code
-     */
     public Coupon getCouponByCode(String code) {
         return couponRepository.findByCode(code.toUpperCase())
                 .orElseThrow(() -> new AppException(ErroCode.COUPON_NOT_FOUND));
     }
+
+
 }

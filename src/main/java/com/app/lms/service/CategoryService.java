@@ -46,7 +46,7 @@ public class CategoryService {
                 .orElseThrow(() -> new AppException(ErroCode.CATEGORY_NO_EXISTED)));
 
     }
-
+    @CacheEvict(value = "categories", allEntries = true)
     public CategoryResponse updateCategory(Long categoryId, CategoryUpdateRequest request) {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new AppException(ErroCode.CATEGORY_NO_EXISTED));
@@ -54,6 +54,7 @@ public class CategoryService {
         return categoryMapper.toCategoryResponse(categoryRepository.save(category));
     }
 
+    @CacheEvict(value = "categories", allEntries = true)
     public void deleteCategory(Long categoryId) {
         categoryRepository.deleteById(categoryId);
     }

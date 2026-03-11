@@ -13,6 +13,8 @@ import com.app.lms.repository.QuestionRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,6 +27,10 @@ public class AnswerOptionService {
     final QuestionRepository questionRepository;
     final AnswerOptionMapper answerOptionMapper;
 
+    @Caching(evict = {
+            @CacheEvict(value = "lessons", allEntries = true),
+            @CacheEvict(value = "courses", allEntries = true)
+    })
     public AnswerOptionResponse createAnswerOption (AnswerOptionCreateRequest request){
         if (answerOptionRepository.existsByAnswerText(request.getAnswerText())) {
             throw new AppException(ErroCode.TITLE_EXISTED);
@@ -50,6 +56,10 @@ public class AnswerOptionService {
                 .orElseThrow(()-> new AppException(ErroCode.ANSWER_OPTION_NO_EXISTED)));
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "lessons", allEntries = true),
+            @CacheEvict(value = "courses", allEntries = true)
+    })
     public AnswerOptionResponse updateAnswerOption (Long answerOptionId, AnswerOptionUpdateRequest request){
         AnswerOption answerOption = answerOptionRepository.findById(answerOptionId)
                 .orElseThrow(() -> new AppException(ErroCode.ANSWER_OPTION_NO_EXISTED));
@@ -57,6 +67,10 @@ public class AnswerOptionService {
         return answerOptionMapper.toAnswerOptionResponse(answerOptionRepository.save(answerOption));
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "lessons", allEntries = true),
+            @CacheEvict(value = "courses", allEntries = true)
+    })
     public void deleteAnswerOption (Long answerOptionId) {
         if (!answerOptionRepository.existsById(answerOptionId)) {
             throw new AppException(ErroCode.ANSWER_OPTION_NO_EXISTED);
