@@ -13,6 +13,7 @@ import com.app.lms.enums.EnrollmentStatus;
 import com.app.lms.enums.PaymentStatus;
 import com.app.lms.exception.AppException;
 import com.app.lms.exception.ErroCode;
+import com.app.lms.mapper.PaymentMapper;
 import com.app.lms.repository.CourseRepository;
 import com.app.lms.repository.PaymentRepository;
 import com.app.lms.util.VNPayUtil;
@@ -41,6 +42,7 @@ public class PaymentService {
     VNPayService vnPayService;
     EnrollmentService enrollmentService;
     VNPayConfig vnPayConfig;
+    private final PaymentMapper paymentMapper;
 
     /**
      * Tạo payment và generate VNPay URL
@@ -221,23 +223,28 @@ public class PaymentService {
     /**
      * Lấy tất cả payment (ADMIN only)
      */
-    public List<Payment> getAllPayments() {
-        return paymentRepository.findAllByOrderByCreatedAtDesc();
+    public List<PaymentResponse> getAllPayments() {
+        return paymentRepository.findAllByOrderByCreatedAtDesc().stream()
+                .map(paymentMapper::toPaymentResponse)
+                .toList();
     }
 
     /**
      * Lấy payment history của student
      */
-    public List<Payment> getPaymentHistory(Long studentId) {
-        return paymentRepository.findByStudentIdOrderByCreatedAtDesc(studentId);
+    public List<PaymentResponse> getPaymentHistory(Long studentId) {
+        return paymentRepository.findByStudentIdOrderByCreatedAtDesc(studentId).stream()
+                .map(paymentMapper::toPaymentResponse)
+                .toList();
     }
 
     /**
      * Lấy payment theo ID
      */
-    public Payment getPaymentById(Long paymentId) {
-        return paymentRepository.findById(paymentId)
+    public PaymentResponse getPaymentById(Long paymentId) {
+        Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new AppException(ErroCode.PAYMENT_NOT_FOUND));
+        return paymentMapper.toPaymentResponse(payment);
     }
 
     /**
@@ -247,4 +254,5 @@ public class PaymentService {
         return paymentRepository.findByVnpayTxnRef(vnpayTxnRef)
                 .orElseThrow(() -> new AppException(ErroCode.PAYMENT_NOT_FOUND));
     }
+
 }

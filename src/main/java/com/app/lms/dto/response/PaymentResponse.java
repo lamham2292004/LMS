@@ -18,6 +18,7 @@ public class PaymentResponse {
     private String vnpayTxnRef;
     private Long studentId;
     private String studentEmail;
+    private String studentName;
     private Long courseId;
     private String courseTitle;
     private BigDecimal originalPrice;
@@ -26,6 +27,8 @@ public class PaymentResponse {
     private String couponCode;
     private PaymentStatus status;
     private String paymentUrl; // URL để redirect đến VNPay
+    private String vnpayTransactionNo;
+    private String vnpayBankCode;
     private OffsetDateTime createdAt;
     private OffsetDateTime paidAt;
 }

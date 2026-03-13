@@ -28,11 +28,9 @@ public class FileController {
     @GetMapping("/**")
     public ResponseEntity<Resource> serveFile(HttpServletRequest request) {
         try {
-            // Lấy request URI: /uploads/courses/xyz.jpg
+
             String requestUri = request.getRequestURI();
 
-            // Cắt bỏ phần /uploads/ để lấy relative path: courses/xyz.jpg
-            // Tuy nhiên, context path có thể thay đổi, nên lấy substring sau "/uploads/"
             int index = requestUri.indexOf("/uploads/");
             if (index == -1) {
                 return ResponseEntity.badRequest().build();
@@ -40,7 +38,6 @@ public class FileController {
 
             String relativePath = requestUri.substring(index + 9); // length of "/uploads/" is 9
 
-            // Fix double uploads issue (e.g. if path is uploads/uploads/courses/...)
             if (relativePath.startsWith("uploads/") || relativePath.startsWith("uploads\\")) {
                 relativePath = relativePath.substring(8); // remove "uploads/"
             }

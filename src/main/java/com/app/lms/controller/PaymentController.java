@@ -139,28 +139,26 @@ public class PaymentController {
 
     @GetMapping("/history")
     @PreAuthorize("hasRole('STUDENT')")
-    public ApiResponse<List<Payment>> getPaymentHistory(@CurrentUser UserTokenInfo currentUser) {
+    public ApiResponse<List<PaymentResponse>> getPaymentHistory(@CurrentUser UserTokenInfo currentUser) {
         log.info("Get payment history for student: {}", currentUser.getUserId());
 
         if (currentUser.getUserType() != UserType.STUDENT) {
             throw new AppException(ErroCode.STUDENT_ONLY);
         }
 
-        List<Payment> payments = paymentService.getPaymentHistory(currentUser.getUserId());
-
-        ApiResponse<List<Payment>> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(payments);
+        ApiResponse<List<PaymentResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(paymentService.getPaymentHistory(currentUser.getUserId()));
         return apiResponse;
     }
 
     @GetMapping("/{paymentId}")
     @PreAuthorize("hasRole('STUDENT') or hasRole('ADMIN')")
-    public ApiResponse<Payment> getPaymentById(
+    public ApiResponse<PaymentResponse> getPaymentById(
             @PathVariable Long paymentId,
             @CurrentUser UserTokenInfo currentUser) {
         log.info("Get payment by ID: {}", paymentId);
 
-        Payment payment = paymentService.getPaymentById(paymentId);
+        PaymentResponse payment = paymentService.getPaymentById(paymentId);
 
         // Student chỉ xem được payment của mình
         if (currentUser.getUserType() == UserType.STUDENT) {
@@ -169,21 +167,20 @@ public class PaymentController {
             }
         }
 
-        ApiResponse<Payment> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(payment);
+        ApiResponse<PaymentResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setResult((payment));
         return apiResponse;
     }
 
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<List<Payment>> getAllPaymentsForAdmin(@CurrentUser UserTokenInfo currentUser) {
+    public ApiResponse<List<PaymentResponse>> getAllPaymentsForAdmin(@CurrentUser UserTokenInfo currentUser) {
         log.info("Admin {} is getting all payments", currentUser.getUserId());
         if (currentUser.getIsAdmin() == null || !currentUser.getIsAdmin()) {
             throw new AppException(ErroCode.ADMIN_ONLY);
         }
-        List<Payment> payments = paymentService.getAllPayments();
-        ApiResponse<List<Payment>> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(payments);
+        ApiResponse<List<PaymentResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(paymentService.getAllPayments());
         return apiResponse;
     }
 }
