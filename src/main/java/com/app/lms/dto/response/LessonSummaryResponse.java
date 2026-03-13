@@ -1,5 +1,6 @@
 package com.app.lms.dto.response;
 
+import com.app.lms.enums.LessonStatus;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -12,4 +13,6 @@ public class LessonSummaryResponse {
     Long id;
     String title;
     Integer duration;
+    Integer orderIndex;
+    LessonStatus status;
 }

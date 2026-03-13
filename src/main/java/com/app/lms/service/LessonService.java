@@ -53,6 +53,10 @@ public class LessonService {
         Lesson lesson = lessonMapper.toLessonMapper(request);
         lesson.setCourse(course);
 
+        if (lesson.getStatus() == null) {
+            lesson.setStatus(com.app.lms.enums.LessonStatus.UPCOMING);
+        }
+
         Lesson savedLesson = lessonRepository.save(lesson);
         return buildLessonResponse(savedLesson);
     }
@@ -97,10 +101,16 @@ public class LessonService {
             @CacheEvict(value = "lessons", allEntries = true),
             @CacheEvict(value = "courses", allEntries = true)
     })
+
     public void deleteLesson(Long lessonId) {
-        if (!lessonRepository.existsById(lessonId)) {
-            throw new AppException(ErroCode.LESSON_NO_EXISTED);
+        Lesson lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new AppException(ErroCode.LESSON_NO_EXISTED));
+
+        // Không được phép xóa bài giảng đang mở
+        if (lesson.getStatus() == com.app.lms.enums.LessonStatus.OPEN) {
+            throw new AppException(ErroCode.LESSON_CANNOT_DELETE_OPEN);
         }
+
         lessonRepository.deleteById(lessonId);
     }
 

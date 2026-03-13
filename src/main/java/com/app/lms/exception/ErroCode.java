@@ -20,6 +20,7 @@ public enum ErroCode {
     QUESTION_NO_EXISTED(1012, "Câu hỏi không tồn tại"),
     ANSWER_OPTION_NO_EXISTED(1013, "Đáp án không tồn tại"),
     INVALID_YOUTUBE_URL(1030, "Link YouTube không hợp lệ"),
+    LESSON_CANNOT_DELETE_OPEN(1031, "Không thể xóa bài giảng đang mở. Vui lòng đóng bài giảng trước khi xóa"),
 
     // ===== JWT & Authentication Errors (2000-2999) =====
     TOKEN_MISSING(2001, "Token không tồn tại trong request"),

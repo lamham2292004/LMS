@@ -69,7 +69,8 @@ public class LessonController {
     }
 
     @DeleteMapping("/{lessonId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or "
+            + "(hasRole('LECTURER') and @authorizationService.canLecturerEditLesson(#lessonId, authentication.name))")
     public ApiResponse<String> deleteLesson(@PathVariable Long lessonId) {
         lessonService.deleteLesson(lessonId);
         return ApiResponse.<String>builder()

@@ -5,9 +5,7 @@ import com.app.lms.dto.request.lessonRequest.LessonUpdateRequest;
 import com.app.lms.dto.response.LessonResponse;
 import com.app.lms.dto.response.LessonSummaryResponse;
 import com.app.lms.entity.Lesson;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
 public interface LessonMapper {
@@ -17,6 +15,6 @@ public interface LessonMapper {
     LessonResponse toLessonResponse(Lesson lesson);
 
     LessonSummaryResponse toLessonSummaryResponse(Lesson lesson);
-
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateLesson(@MappingTarget Lesson lesson, LessonUpdateRequest request);
 }
