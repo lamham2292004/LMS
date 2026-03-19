@@ -11,6 +11,8 @@ import java.util.Optional;
 public interface AnswerOptionRepository extends JpaRepository<AnswerOption, Long> {
     boolean existsByAnswerText(String answerText);
 
+    boolean existsByAnswerTextAndQuestionId(String answerText, Long questionId);
+
     List<AnswerOption> findByQuestionIdOrderByOrderIndex(Long questionId);
 
     @Query("SELECT ao FROM AnswerOption ao WHERE ao.questionId = :questionId AND ao.isCorrect = true")

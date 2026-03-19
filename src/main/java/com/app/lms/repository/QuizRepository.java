@@ -10,6 +10,8 @@ import java.util.List;
 public interface QuizRepository extends JpaRepository<Quiz, Long> {
     boolean existsByTitle (String title);
 
+    boolean existsByTitleAndLessonId(String title, Long lessonId);
+
     List<Quiz> findByLessonId(Long lessonId);
 
     @Query("SELECT q FROM Quiz q JOIN q.lesson l WHERE l.courseId = :courseId")

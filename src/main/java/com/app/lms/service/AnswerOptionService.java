@@ -5,6 +5,7 @@ import com.app.lms.dto.request.answerOptionRequest.AnswerOptionUpdateRequest;
 import com.app.lms.dto.response.AnswerOptionResponse;
 import com.app.lms.entity.AnswerOption;
 import com.app.lms.entity.Question;
+import com.app.lms.enums.QuestionType;
 import com.app.lms.exception.AppException;
 import com.app.lms.exception.ErroCode;
 import com.app.lms.mapper.AnswerOptionMapper;
@@ -32,11 +33,28 @@ public class AnswerOptionService {
             @CacheEvict(value = "courses", allEntries = true)
     })
     public AnswerOptionResponse createAnswerOption (AnswerOptionCreateRequest request){
-        if (answerOptionRepository.existsByAnswerText(request.getAnswerText())) {
+        if (answerOptionRepository.existsByAnswerTextAndQuestionId(request.getAnswerText(), request.getQuestionId())) {
             throw new AppException(ErroCode.TITLE_EXISTED);
         }
         Question question = questionRepository.findById(request.getQuestionId())
-                .orElseThrow(()-> new AppException(ErroCode.QUESTION_NO_EXISTED));
+                .orElseThrow(()->new AppException(ErroCode.QUESTION_NO_EXISTED));
+
+        // Validate số lượng đáp án theo loại câu hỏi
+        List<AnswerOption> existingOptions = answerOptionRepository.findByQuestionIdOrderByOrderIndex(question.getId());
+        if (question.getQuestionType() == QuestionType.TRUE_FALSE && existingOptions.size() >= 2) {
+            throw new AppException(ErroCode.ANSWER_OPTION_LIMIT_EXCEEDED);
+        }
+
+        // Validate chỉ cho phép 1 đáp án đúng cho MULTIPLE_CHOICE và TRUE_FALSE
+        if (Boolean.TRUE.equals(request.getIsCorrect())) {
+            boolean hasCorrectAnswer = existingOptions.stream()
+                    .anyMatch(opt -> Boolean.TRUE.equals(opt.getIsCorrect()));
+            if (hasCorrectAnswer && (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE
+                    || question.getQuestionType() == QuestionType.TRUE_FALSE)) {
+                throw new AppException(ErroCode.MULTIPLE_CORRECT_ANSWERS_NOT_ALLOWED);
+            }
+        }
+
         AnswerOption answerOption = answerOptionMapper.toAnswerOptionMapper(request);
         answerOption.setQuestion(question);
         return answerOptionMapper.toAnswerOptionResponse(answerOptionRepository.save(answerOption));
@@ -79,8 +97,7 @@ public class AnswerOptionService {
     }
 
     public List<AnswerOptionResponse> getAnswerOptionsByQuestionId(Long questionId) {
-        return answerOptionRepository.findAll().stream()
-                .filter(option -> option.getQuestionId().equals(questionId))
+        return answerOptionRepository.findByQuestionIdOrderByOrderIndex(questionId).stream()
                 .map(answerOptionMapper::toAnswerOptionResponse)
                 .toList();
     }

@@ -31,7 +31,7 @@ public class QuestionService {
             @CacheEvict(value = "courses", allEntries = true)
     })
     public QuestionResponse createQuestion(QuestionCreateRequest request) {
-        if (questionRepository.existsByQuestionText(request.getQuestionText())) {
+        if (questionRepository.existsByQuestionTextAndQuizId(request.getQuestionText(), request.getQuizId())) {
             throw new AppException(ErroCode.TITLE_EXISTED);
         }
         Quiz quiz = quizRepository.findById(request.getQuizId())
@@ -77,8 +77,7 @@ public class QuestionService {
     }
 
     public List<QuestionResponse> getQuestionsByQuizId(Long quizId) {
-        return questionRepository.findAll().stream()
-                .filter(question -> question.getQuizId().equals(quizId))
+        return questionRepository.findByQuizIdOrderByOrderIndex(quizId).stream()
                 .map(questionMapper::toQuestionResponse)
                 .toList();
     }

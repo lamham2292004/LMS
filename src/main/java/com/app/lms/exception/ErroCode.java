@@ -79,7 +79,11 @@ public enum ErroCode {
 
     // Progress tracking errors (5000-5099)
     PROGRESS_NOT_FOUND(5001, "Tiến độ học không tồn tại"),
-    LESSON_NOT_IN_COURSE(5002, "Bài học không thuộc khóa học đã đăng ký");
+    LESSON_NOT_IN_COURSE(5002, "Bài học không thuộc khóa học đã đăng ký"),
+
+    // Answer Option validation errors (1040-1049)
+    ANSWER_OPTION_LIMIT_EXCEEDED(1040, "Câu hỏi Đúng/Sai chỉ được có tối đa 2 đáp án"),
+    MULTIPLE_CORRECT_ANSWERS_NOT_ALLOWED(1041, "Chỉ được phép có 1 đáp án đúng cho loại câu hỏi này");
 
     private int code;
     private String message;

@@ -10,6 +10,8 @@ import java.util.List;
 public interface QuestionRepository extends JpaRepository<Question, Long> {
     boolean existsByQuestionText(String questionText);
 
+    boolean existsByQuestionTextAndQuizId(String questionText, Long quizId);
+
     List<Question> findByQuizIdOrderByOrderIndex(Long quizId);
 
     @Query("SELECT COUNT(q) FROM Question q WHERE q.quizId = :quizId")

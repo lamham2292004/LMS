@@ -39,7 +39,7 @@ public class QuestionController {
     }
 
     @GetMapping("{questionId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('LECTURER')"+"(@authorizationService.canStudentViewQuestion(#questionId,authentication.name))")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LECTURER') or "+"@authorizationService.canStudentViewQuestion(#questionId,authentication.name)")
     ApiResponse<QuestionResponse> getQuestion(@Valid @PathVariable("questionId") Long questionId) {
         ApiResponse<QuestionResponse> apiResponse = new ApiResponse<>();
         apiResponse.setResult(questionService.getQuestionById(questionId));
