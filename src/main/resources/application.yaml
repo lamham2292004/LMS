@@ -47,14 +47,14 @@ app:
 # External Services Configuration
 notification:
   service:
-    url: ${NOTIFICATION_SERVICE_URL:http://localhost:8080}
+    url: ${NOTIFICATION_SERVICE_URL:http://localhost:8082}
   course:
     review:
       base-url: ${COURSE_REVIEW_BASE_URL:http://localhost:3000/admin/courses/approve}
 
 identity:
   service:
-    url: ${IDENTITY_SERVICE_URL:http://localhost:8080}
+    url: ${IDENTITY_SERVICE_URL:http://localhost:8082}
 
 # VNPay Payment Gateway Configuration
 vnpay:

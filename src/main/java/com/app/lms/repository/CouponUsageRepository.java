@@ -17,4 +17,6 @@ public interface CouponUsageRepository extends JpaRepository<CouponUsage, Long> 
     Long countByCouponIdAndStudentId(@Param("couponId") Long couponId, @Param("studentId") Long studentId);
 
     Boolean existsByCoupon_IdAndStudentId(Long couponId, Long studentId);
+
+    void deleteByCourseId(Long courseId);
 }

@@ -16,4 +16,6 @@ public interface LessonProgressRepository extends JpaRepository<LessonProgress, 
 
     // Đếm số bài đã hoàn thành trong 1 khóa học
     long countByStudentIdAndLesson_CourseIdAndCompletedTrue(Long studentId, Long courseId);
+
+    void deleteByLessonId(Long lessonId);
 }

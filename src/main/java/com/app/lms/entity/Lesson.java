@@ -8,6 +8,8 @@ import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -56,4 +58,11 @@ public class Lesson {
 
     @Column(name = "youtube_url")
     String youtubeUrl; // Link YouTube của bài học
+
+    // Quan hệ 1-n với Quizzes
+    @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @Builder.Default
+    List<Quiz> quizzes = new ArrayList<>();
 }

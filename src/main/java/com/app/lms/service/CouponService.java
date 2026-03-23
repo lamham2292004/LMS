@@ -21,7 +21,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import com.app.lms.repository.CouponUsageRepository;
+import com.app.lms.repository.PaymentRepository;
+import lombok.AccessLevel;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
@@ -35,6 +39,7 @@ public class CouponService {
 
     CouponRepository couponRepository;
     CouponUsageRepository couponUsageRepository;
+    PaymentRepository paymentRepository;
     CourseRepository courseRepository;
     CouponMapper couponMapper;
 
@@ -112,6 +117,17 @@ public class CouponService {
         if (!couponRepository.existsById(couponId)) {
             throw new AppException(ErroCode.COUPON_NOT_FOUND);
         }
+
+        // Bỏ liên kết từ Payment tới Coupon trước khi xóa (tránh lỗi FK)
+        List<Payment> linkedPayments = paymentRepository.findAll().stream()
+                .filter(p -> p.getCoupon() != null && p.getCoupon().getId().equals(couponId))
+                .toList();
+
+        for (Payment payment : linkedPayments) {
+            payment.setCoupon(null);
+            paymentRepository.save(payment);
+        }
+
         couponRepository.deleteById(couponId);
     }
 

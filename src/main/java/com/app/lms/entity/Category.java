@@ -34,7 +34,7 @@ public class Category {
     OffsetDateTime updatedAt;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     List<Course> courses = new ArrayList<>();
 
 }

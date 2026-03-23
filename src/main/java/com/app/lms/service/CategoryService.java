@@ -56,6 +56,14 @@ public class CategoryService {
 
     @CacheEvict(value = "categories", allEntries = true)
     public void deleteCategory(Long categoryId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new AppException(ErroCode.CATEGORY_NO_EXISTED));
+
+        // Không cho xóa category nếu còn course
+        if (category.getCourses() != null && !category.getCourses().isEmpty()) {
+            throw new AppException(ErroCode.CATEGORY_HAS_COURSES);
+        }
+
         categoryRepository.deleteById(categoryId);
     }
 }

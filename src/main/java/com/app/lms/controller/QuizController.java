@@ -39,7 +39,7 @@ public class QuizController {
     }
 
     @GetMapping("{quizId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('LECTURER') or " + 
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LECTURER') or " +
             "@authorizationService.canStudentAccessQuiz(#quizId, authentication.name)")
     ApiResponse<QuizResponse> getQuizById (@Valid @PathVariable Long quizId){
         ApiResponse<QuizResponse> apiResponse = new ApiResponse<>();
@@ -83,7 +83,8 @@ public class QuizController {
     }
 
     @DeleteMapping("{quizId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or " +
+            "(hasRole('LECTURER') and @authorizationService.canLecturerEditQuiz(#quizId, authentication.name))")
     public ApiResponse<String> deleteQuiz(@Valid @PathVariable Long quizId) {
         quizService.deleteQuiz(quizId);
         return ApiResponse.<String>builder()

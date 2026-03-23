@@ -14,7 +14,7 @@ public enum ErroCode {
     FILE_EXISTED(1007, "File rỗng"),
     LESSON_NO_EXISTED(1008, "Bài học không tồn tại"),
     CATEGORY_NO_EXISTED(1009, "Danh mục không tồn tại"),
-    NAME_CATEGORY_INVALID(1001, "Tên danh mục đã tồn tại"),
+    NAME_CATEGORY_INVALID(1032, "Tên danh mục đã tồn tại"),
     ENROLLMENT_NO_EXISTED(1010, "Đăng ký không tồn tại"),
     QUIZ_NO_EXISTED(1011, "Bài kiểm tra không tồn tại"),
     QUESTION_NO_EXISTED(1012, "Câu hỏi không tồn tại"),
@@ -61,6 +61,8 @@ public enum ErroCode {
     COURSE_ALREADY_APPROVED(1026, "Khóa học đã được phê duyệt"),
     COURSE_NOT_APPROVED(1027, "Khóa học chưa được phê duyệt"),
     REJECTION_REASON_REQUIRED(1028, "Vui lòng nhập lý do từ chối"),
+    CATEGORY_HAS_COURSES(1033, "Danh mục đang chứa khóa học, không thể xóa"),
+    COURSE_HAS_ACTIVE_ENROLLMENT(1034, "Khóa học có học viên đang học, không thể xóa"),
 
     // Payment errors (4000-4099)
     PAYMENT_NOT_FOUND(4001, "Giao dịch không tồn tại"),

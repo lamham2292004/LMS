@@ -138,8 +138,10 @@ public class CourseController {
             @RequestPart(value = "file", required = false) MultipartFile file,
             @CurrentUser UserTokenInfo currentUser) {
 
+        boolean isAdmin = currentUser.getUserType() == UserType.ADMIN;
+
         ApiResponse<CourseResponse> apiResponse = new ApiResponse<>();
-        CourseResponse course = courseService.updateCourse(courseId, request, file);
+        CourseResponse course = courseService.updateCourse(courseId, request, file, isAdmin);
         apiResponse.setResult(course);
 
         // Nếu lecturer sửa khóa học đã approved → chuyển về pending

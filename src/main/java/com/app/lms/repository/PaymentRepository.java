@@ -20,4 +20,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     Boolean existsByVnpayTxnRef(String vnpayTxnRef);
 
     List<Payment> findAllByOrderByCreatedAtDesc();
+
+    void deleteByCourse_Id(Long courseId);
 }

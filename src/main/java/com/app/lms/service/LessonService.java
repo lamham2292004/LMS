@@ -36,7 +36,7 @@ public class LessonService {
             @CacheEvict(value = "courses", allEntries = true)
     })
     public LessonResponse createLesson(LessonCreateRequest request) {
-        if (lessonRepository.existsByTitle(request.getTitle())) {
+        if (lessonRepository.existsByTitleAndCourseId(request.getTitle(), request.getCourseId())) {
             throw new AppException(ErroCode.TITLE_EXISTED);
         }
 

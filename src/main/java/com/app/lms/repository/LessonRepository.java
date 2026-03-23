@@ -9,6 +9,7 @@ import java.util.List;
 
 public interface LessonRepository extends JpaRepository <Lesson,Long>{
     Boolean existsByTitle (String title);
+    Boolean existsByTitleAndCourseId(String title, Long courseId);
 
     List<Lesson> findByCourseId(Long courseId);
 
