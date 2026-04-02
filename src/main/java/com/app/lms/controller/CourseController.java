@@ -2,7 +2,7 @@ package com.app.lms.controller;
 
 import java.util.List;
 
-import com.app.lms.dto.request.ApprovalRequest.ApprovalRequest;
+import com.app.lms.dto.request.approvalRequest.ApprovalRequest;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

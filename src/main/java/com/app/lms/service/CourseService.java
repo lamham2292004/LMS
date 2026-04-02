@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-import com.app.lms.dto.request.ApprovalRequest.ApprovalRequest;
+import com.app.lms.dto.request.approvalRequest.ApprovalRequest;
 import com.app.lms.entity.Category;
 import com.app.lms.entity.Coupon;
 import com.app.lms.entity.Lesson;

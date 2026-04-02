@@ -1,4 +1,4 @@
-package com.app.lms.dto.request.ApprovalRequest;
+package com.app.lms.dto.request.approvalRequest;
 
 import com.app.lms.enums.ApprovalStatus;
 import jakarta.validation.constraints.NotNull;
